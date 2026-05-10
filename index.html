@@ -680,63 +680,63 @@ function updBtn(n){
 }
 
 async function tog(n){
-  const s = !rs[n];
+  const s   = !rs[n];
   const cmd = 'relay_'+n+'_'+(s?'on':'off');
+
+  // ✅ MQTT Cloud أولاً (فوري) ثم HTTP fallback
+  if(mqttSend(cmd)){
+    rs[n]=s; updBtn(n);
+    lg(`${ri[n]} Relay ${n} → ${s?'ON':'OFF'} ☁️ MQTT`,'ok');
+    return;
+  }
+
+  // HTTP local fallback
   try{
-    // ✅ FIX: timeout 8s + تأكيد الحالة الفعلية من الـ server
     const ctrl = new AbortController();
-    const tid  = setTimeout(()=>ctrl.abort(), 8000);
+    const tid  = setTimeout(()=>ctrl.abort(), 5000);
     const res  = await fetch('/api/relay',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({num:n,state:s}),
-      signal: ctrl.signal
+      signal:ctrl.signal
     });
     clearTimeout(tid);
     if(res.ok){
       const data = await res.json();
-      // استخدم الحالة الفعلية من الـ ESP32 وليس ما طلبناه
       const actual = data.state !== undefined ? data.state : s;
-      rs[n] = actual;
-      updBtn(n);
-      lg(`${ri[n]} Relay ${n} → ${actual?'ON':'OFF'} ✓`, actual?'ok':'warn');
-    } else {
-      lg(`❌ Relay ${n} error: ${res.status}`,'err');
+      rs[n]=actual; updBtn(n);
+      lg(`${ri[n]} Relay ${n} → ${actual?'ON':'OFF'} 🌐 HTTP`,'ok');
     }
   } catch(e){
-    // fallback: MQTT
-    if(mqttSend(cmd)){
-      rs[n]=s; updBtn(n);
-      lg(`${ri[n]} Relay ${n} → ${s?'ON':'OFF'} (via MQTT)`, s?'ok':'warn');
-    } else {
-      lg('❌ No connection! Check WiFi.','err');
-    }
+    lg('❌ Both MQTT and HTTP failed!','err');
   }
 }
 
 async function allOff(){
+  // MQTT first
+  if(mqttSend('all_off')){
+    [1,2,3,4].forEach(n=>{rs[n]=false;updBtn(n);});
+    lg('🚫 All relays OFF ☁️ MQTT','warn');
+    return;
+  }
+  // HTTP fallback
   try{
     const ctrl = new AbortController();
-    const tid  = setTimeout(()=>ctrl.abort(), 8000);
+    const tid  = setTimeout(()=>ctrl.abort(), 5000);
     const res  = await fetch('/api/relay',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({num:0,state:false}),
-      signal: ctrl.signal
+      signal:ctrl.signal
     });
     clearTimeout(tid);
     if(res.ok){
       const data = await res.json();
-      [1,2,3,4].forEach(n=>{
-        rs[n] = data['relay_'+n] || false;
-        updBtn(n);
-      });
-      lg('🚫 All relays OFF ✓','warn');
+      [1,2,3,4].forEach(n=>{rs[n]=data['relay_'+n]||false;updBtn(n);});
+      lg('🚫 All relays OFF 🌐 HTTP','warn');
     }
   } catch(e){
-    mqttSend('all_off');
-    [1,2,3,4].forEach(n=>{rs[n]=false;updBtn(n);});
-    lg('🚫 All OFF (via MQTT)','warn');
+    lg('❌ Both MQTT and HTTP failed!','err');
   }
 }
 
@@ -746,27 +746,39 @@ async function allOff(){
 async function goSleep(){
   const s=parseInt(document.getElementById('ssec').value)||300;
   if(!confirm(`😴 Put ESP32 to sleep for ${s} seconds?`)) return;
-  try{
-    await fetch('/api/sleep',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({seconds:s})
-    });
-  } catch(e){ mqttSend('sleep_now'); }
+
+  if(mqttSend('sleep_now')){
+    lg(`😴 Sleep cmd sent ☁️ MQTT`,'warn');
+  } else {
+    try{
+      const ctrl=new AbortController();
+      setTimeout(()=>ctrl.abort(),5000);
+      await fetch('/api/sleep',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({seconds:s}),signal:ctrl.signal
+      });
+      lg(`😴 Sleep cmd sent 🌐 HTTP`,'warn');
+    } catch(e){ lg('❌ Sleep cmd failed','err'); return; }
+  }
   document.getElementById('web-dot').className='dot warn';
   document.getElementById('web-txt').textContent='sleeping...';
-  lg(`😴 Sleeping ${s}s`,'warn');
 }
 
 async function doReset(){
   if(!confirm('🔁 Restart the ESP32?')) return;
-  try{
-    await fetch('/api/reset',{method:'POST'});
-    lg('🔁 Restarting ESP32...','warn');
-    document.getElementById('web-dot').className='dot warn';
-  } catch(e){
-    mqttSend('reset');
-    lg('🔁 Reset command sent via MQTT','warn');
+
+  if(mqttSend('reset')){
+    lg('🔁 Reset sent ☁️ MQTT','warn');
+  } else {
+    try{
+      const ctrl=new AbortController();
+      setTimeout(()=>ctrl.abort(),5000);
+      await fetch('/api/reset',{method:'POST',signal:ctrl.signal});
+      lg('🔁 Reset sent 🌐 HTTP','warn');
+    } catch(e){ lg('❌ Reset failed','err'); return; }
   }
+  document.getElementById('web-dot').className='dot warn';
+  document.getElementById('web-txt').textContent='restarting...';
 }
 
 // ══════════════════════════════════════════════════════════════
