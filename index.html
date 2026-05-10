@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <meta name="theme-color" content="#0a0f1e">
-<meta name="apple-mobile-web-app-capable" content="yes">
 <title>Smart Farm IoT</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mqtt@5/dist/mqtt.min.js"></script>
@@ -23,22 +22,16 @@ body{
   background:var(--bg0);color:var(--tx);
   min-height:100vh;font-size:14px;
 }
-
-/* ── Header ── */
 .header{
-  background:var(--bg1);
-  border-bottom:1px solid var(--bd);
-  padding:12px 16px;
-  display:flex;align-items:center;
-  justify-content:space-between;
-  position:sticky;top:0;z-index:100;
+  background:var(--bg1);border-bottom:1px solid var(--bd);
+  padding:12px 16px;display:flex;align-items:center;
+  justify-content:space-between;position:sticky;top:0;z-index:100;
 }
 .header-left{display:flex;align-items:center;gap:10px}
 .logo{
   width:34px;height:34px;border-radius:10px;
   background:linear-gradient(135deg,#0ea5e9,#22c55e);
-  display:flex;align-items:center;justify-content:center;
-  font-size:18px;
+  display:flex;align-items:center;justify-content:center;font-size:18px;
 }
 .header h1{font-size:.95rem;font-weight:600;color:var(--tx)}
 .header-sub{font-size:.7rem;color:var(--tx3);margin-top:1px}
@@ -46,8 +39,7 @@ body{
 .pill{
   display:flex;align-items:center;gap:5px;
   background:var(--bg2);border:1px solid var(--bd2);
-  border-radius:20px;padding:4px 10px;
-  font-size:.68rem;color:var(--tx2);
+  border-radius:20px;padding:4px 10px;font-size:.68rem;color:var(--tx2);
 }
 .dot{width:7px;height:7px;border-radius:50%;background:var(--tx3)}
 .dot.on{background:var(--green)}
@@ -55,177 +47,118 @@ body{
 .dot.warn{background:var(--amber)}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
 .dot.live{animation:blink 2s infinite}
-
-/* ── Main ── */
 main{padding:14px;max-width:900px;margin:0 auto}
-
-/* ── Sensor cards ── */
 .cards{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
   gap:10px;margin-bottom:12px;
 }
 .card{
-  background:var(--bg1);
-  border:1px solid var(--bd);
-  border-radius:14px;padding:14px;
-  position:relative;overflow:hidden;
+  background:var(--bg1);border:1px solid var(--bd);
+  border-radius:14px;padding:14px;position:relative;overflow:hidden;
   cursor:default;transition:border-color .2s;
 }
 .card:hover{border-color:var(--bd2)}
-.card-accent{
-  position:absolute;top:0;left:0;right:0;height:3px;
-  border-radius:14px 14px 0 0;
-}
+.card-accent{position:absolute;top:0;left:0;right:0;height:3px;border-radius:14px 14px 0 0;}
 .card-icon{font-size:18px;margin-bottom:6px;display:block}
-.card-lbl{
-  font-size:.65rem;color:var(--tx3);
-  text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;
-}
-.card-val{
-  font-size:1.75rem;font-weight:700;
-  color:var(--tx);line-height:1;
-}
+.card-lbl{font-size:.65rem;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;}
+.card-val{font-size:1.75rem;font-weight:700;color:var(--tx);line-height:1;}
 .card-unit{font-size:.75rem;color:var(--tx3);margin-left:2px}
 .card-status{font-size:.68rem;color:var(--tx3);margin-top:5px;min-height:14px}
 .bar{height:3px;background:var(--bg0);border-radius:2px;margin-top:9px;overflow:hidden}
 .bar-fill{height:100%;border-radius:2px;transition:width .8s ease}
-
-/* ── Tank LED indicator ── */
-.tank-leds{
-  display:flex;gap:6px;margin-top:8px;align-items:center;
-}
+.tank-leds{display:flex;gap:6px;margin-top:8px;align-items:center;}
 .tled{
   width:12px;height:12px;border-radius:50%;
-  background:var(--bg2);border:1px solid var(--bd2);
-  transition:background .4s,border-color .4s;
+  background:var(--bg2);border:1px solid var(--bd2);transition:background .4s,border-color .4s;
 }
 .tled.on-red   {background:#ef4444;border-color:#b91c1c}
 .tled.on-amber {background:#f59e0b;border-color:#b45309}
 .tled.on-green {background:#22c55e;border-color:#15803d}
 .tled.on-bright{background:#4ade80;border-color:#16a34a}
-
-/* ── Sections ── */
-.sec{
-  background:var(--bg1);border:1px solid var(--bd);
-  border-radius:14px;padding:15px 16px;margin-bottom:12px;
-}
-.sec-hdr{
-  display:flex;align-items:center;justify-content:space-between;
-  margin-bottom:14px;
-}
-.sec-title{
-  font-size:.68rem;color:var(--tx3);
-  text-transform:uppercase;letter-spacing:.08em;font-weight:500;
-  display:flex;align-items:center;gap:6px;
-}
+.sec{background:var(--bg1);border:1px solid var(--bd);border-radius:14px;padding:15px 16px;margin-bottom:12px;}
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.sec-title{font-size:.68rem;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;font-weight:500;display:flex;align-items:center;gap:6px;}
 .sec-icon{font-size:14px}
-
-/* ── Charts ── */
 .charts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
 @media(max-width:480px){.charts{grid-template-columns:1fr}}
 .chart-wrap{background:var(--bg1);border:1px solid var(--bd);border-radius:14px;padding:14px}
 .chart-lbl{font-size:.68rem;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
 .chart-box{position:relative;height:130px}
-
-/* ── Relay buttons ── */
-.relay-grid{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:8px;margin-bottom:12px;
-}
+.relay-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px;}
 @media(min-width:480px){.relay-grid{grid-template-columns:repeat(4,1fr)}}
 .rbtn{
-  padding:12px 6px;border:1px solid var(--bd2);
-  border-radius:10px;cursor:pointer;
-  font-size:.78rem;font-weight:600;
-  transition:all .18s;width:100%;
-  display:flex;flex-direction:column;
-  align-items:center;gap:4px;
+  padding:12px 6px;border:1px solid var(--bd2);border-radius:10px;cursor:pointer;
+  font-size:.78rem;font-weight:600;transition:all .18s;width:100%;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
   background:var(--bg0);color:var(--tx2);
 }
 .rbtn-icon{font-size:18px}
 .rbtn.ron{background:#14532d;color:#bbf7d0;border-color:#22c55e}
 .rbtn.ron:hover{background:#166534}
 .rbtn.roff:hover{background:var(--bg2)}
-
-/* ── Buttons row ── */
+.rbtn:disabled{opacity:.5;cursor:not-allowed}
 .btn-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .btn{
-  padding:9px 16px;border:1px solid var(--bd2);
-  border-radius:9px;cursor:pointer;
-  font-weight:600;font-size:.78rem;
-  transition:all .15s;display:flex;
-  align-items:center;gap:6px;background:var(--bg0);color:var(--tx);
+  padding:9px 16px;border:1px solid var(--bd2);border-radius:9px;cursor:pointer;
+  font-weight:600;font-size:.78rem;transition:all .15s;
+  display:flex;align-items:center;gap:6px;background:var(--bg0);color:var(--tx);
 }
 .btn:hover{background:var(--bg2)}
-.btn-blue{background:#0c4a6e;color:#bae6fd;border-color:#0ea5e9}
+.btn-blue  {background:#0c4a6e;color:#bae6fd;border-color:#0ea5e9}
 .btn-blue:hover{background:#075985}
-.btn-red{background:#450a0a;color:#fecaca;border-color:#ef4444}
+.btn-red   {background:#450a0a;color:#fecaca;border-color:#ef4444}
 .btn-red:hover{background:#7f1d1d}
-.btn-amber{background:#451a03;color:#fde68a;border-color:#f59e0b}
+.btn-amber {background:#451a03;color:#fde68a;border-color:#f59e0b}
 .btn-amber:hover{background:#78350f}
-.btn-green{background:#052e16;color:#bbf7d0;border-color:#22c55e}
+.btn-green {background:#052e16;color:#bbf7d0;border-color:#22c55e}
 .btn-green:hover{background:#14532d}
 .btn-purple{background:#2e1065;color:#ddd6fe;border-color:#a78bfa}
 .btn-purple:hover{background:#4c1d95}
 .spacer{flex:1}
-
-/* ── Inputs ── */
 input[type=number],input[type=password],input[type=text]{
   background:var(--bg0);border:1px solid var(--bd2);
-  color:var(--tx);padding:8px 11px;
-  border-radius:9px;font-size:.78rem;outline:none;
-  transition:border-color .15s;
+  color:var(--tx);padding:8px 11px;border-radius:9px;
+  font-size:.78rem;outline:none;transition:border-color .15s;
 }
 input:focus{border-color:var(--blue)}
-
-/* ── Log ── */
 .log{
-  background:var(--bg0);border-radius:8px;
-  padding:10px 12px;font-family:'SF Mono',monospace;
-  font-size:.68rem;color:var(--tx3);
-  height:90px;overflow-y:auto;border:1px solid var(--bd);
-  line-height:1.7;
+  background:var(--bg0);border-radius:8px;padding:10px 12px;
+  font-family:'SF Mono',monospace;font-size:.68rem;color:var(--tx3);
+  height:110px;overflow-y:auto;border:1px solid var(--bd);line-height:1.7;
 }
 .log .ok  {color:var(--green)}
 .log .err {color:var(--red)}
 .log .warn{color:var(--amber)}
 .log .info{color:var(--blue)}
 .log .ts  {color:var(--tx3)}
-
-/* ── Alert banner ── */
 .alert{
-  background:#450a0a;border:1px solid #ef4444;
-  border-radius:10px;padding:10px 14px;
-  font-size:.78rem;color:#fca5a5;
-  display:none;margin-bottom:12px;
-  align-items:center;gap:8px;
+  background:#450a0a;border:1px solid #ef4444;border-radius:10px;
+  padding:10px 14px;font-size:.78rem;color:#fca5a5;
+  display:none;margin-bottom:12px;align-items:center;gap:8px;
 }
 .alert.show{display:flex}
-
-/* ── OTA progress ── */
 #ota-msg{margin-top:8px;font-size:.74rem;color:var(--tx3);min-height:18px}
-
-/* ── Stats row ── */
 .stats-row{
-  display:flex;gap:8px;flex-wrap:wrap;
-  font-size:.68rem;color:var(--tx3);
+  display:flex;gap:8px;flex-wrap:wrap;font-size:.68rem;color:var(--tx3);
   margin-bottom:12px;align-items:center;
 }
 .stats-row b{color:var(--tx2)}
 .divider{width:1px;height:12px;background:var(--bd2)}
-
-/* ── Responsive ── */
-@media(max-width:380px){
-  .cards{grid-template-columns:repeat(2,1fr)}
-  .pill .pill-txt{display:none}
+/* connection mode badge */
+.mode-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:.65rem;padding:2px 7px;border-radius:10px;
+  background:var(--bg2);border:1px solid var(--bd2);color:var(--tx3);
 }
+.mode-badge.mqtt{background:#052e16;border-color:#22c55e;color:#86efac}
+.mode-badge.http{background:#0c4a6e;border-color:#0ea5e9;color:#7dd3fc}
+.mode-badge.fail{background:#450a0a;border-color:#ef4444;color:#fca5a5}
+@media(max-width:380px){.cards{grid-template-columns:repeat(2,1fr)}.pill .pill-txt{display:none}}
 </style>
 </head>
 <body>
 
-<!-- ══ Header ══════════════════════════════════════════════ -->
+<!-- Header -->
 <div class="header">
   <div class="header-left">
     <div class="logo">🌿</div>
@@ -236,7 +169,7 @@ input:focus{border-color:var(--blue)}
   </div>
   <div class="pills">
     <div class="pill">
-      <div class="dot live on" id="web-dot"></div>
+      <div class="dot" id="web-dot"></div>
       <span class="pill-txt" id="web-txt">local</span>
     </div>
     <div class="pill">
@@ -248,7 +181,7 @@ input:focus{border-color:var(--blue)}
 
 <main>
 
-  <!-- Alert banner -->
+  <!-- Alert -->
   <div class="alert" id="alert-banner">
     <span id="alert-icon">⚠️</span>
     <span id="alert-msg">--</span>
@@ -258,17 +191,15 @@ input:focus{border-color:var(--blue)}
   <div class="stats-row">
     <span>IP: <b id="s-ip">--</b></span>
     <div class="divider"></div>
-    <span>Uptime: <b id="s-up">--</b></span>
-    <div class="divider"></div>
     <span>Updated: <b id="s-time">--</b></span>
     <div class="divider"></div>
     <span>RAM: <b id="s-ram">--</b></span>
+    <div class="divider"></div>
+    <span>Control: <span class="mode-badge" id="ctrl-mode">--</span></span>
   </div>
 
-  <!-- ══ Sensor Cards ══════════════════════════════════════ -->
+  <!-- Sensor Cards -->
   <div class="cards">
-
-    <!-- Temperature -->
     <div class="card">
       <div class="card-accent" style="background:linear-gradient(90deg,#f59e0b,#ef4444)"></div>
       <span class="card-icon">🌡️</span>
@@ -277,8 +208,6 @@ input:focus{border-color:var(--blue)}
       <div class="card-status" id="st">--</div>
       <div class="bar"><div class="bar-fill" id="bt" style="width:0%;background:#f59e0b"></div></div>
     </div>
-
-    <!-- Humidity -->
     <div class="card">
       <div class="card-accent" style="background:linear-gradient(90deg,#38bdf8,#6366f1)"></div>
       <span class="card-icon">💧</span>
@@ -287,8 +216,6 @@ input:focus{border-color:var(--blue)}
       <div class="card-status" id="sh">--</div>
       <div class="bar"><div class="bar-fill" id="bh" style="width:0%;background:#38bdf8"></div></div>
     </div>
-
-    <!-- Soil -->
     <div class="card">
       <div class="card-accent" style="background:linear-gradient(90deg,#22c55e,#84cc16)"></div>
       <span class="card-icon">🌱</span>
@@ -297,8 +224,6 @@ input:focus{border-color:var(--blue)}
       <div class="card-status" id="ss">--</div>
       <div class="bar"><div class="bar-fill" id="bs" style="width:0%;background:#22c55e"></div></div>
     </div>
-
-    <!-- Tank -->
     <div class="card">
       <div class="card-accent" style="background:linear-gradient(90deg,#06b6d4,#3b82f6)"></div>
       <span class="card-icon">🪣</span>
@@ -313,10 +238,9 @@ input:focus{border-color:var(--blue)}
         <span style="font-size:.65rem;color:var(--tx3);margin-left:2px">level</span>
       </div>
     </div>
-
   </div>
 
-  <!-- ══ Charts ════════════════════════════════════════════ -->
+  <!-- Charts -->
   <div class="charts">
     <div class="chart-wrap">
       <div class="chart-lbl"><span>📈</span> Temperature history</div>
@@ -328,10 +252,11 @@ input:focus{border-color:var(--blue)}
     </div>
   </div>
 
-  <!-- ══ Relay Control ═════════════════════════════════════ -->
+  <!-- Relay Control -->
   <div class="sec">
     <div class="sec-hdr">
       <div class="sec-title"><span class="sec-icon">⚡</span> Relay Control</div>
+      <span id="ctrl-via" style="font-size:.65rem;color:var(--tx3)"></span>
     </div>
     <div class="relay-grid">
       <button class="rbtn roff" id="r1" onclick="tog(1)">
@@ -347,70 +272,46 @@ input:focus{border-color:var(--blue)}
         <span id="r3-txt">Relay 3 — OFF</span>
       </button>
       <button class="rbtn roff" id="r4" onclick="tog(4)">
-        <span class="rbtn-icon">🔌</span>
-        <span id="r4-txt">Relay 4 — OFF</span>
+        <span class="rbtn-icon">💡</span>
+        <span id="r4-txt">Lamp — OFF</span>
       </button>
     </div>
     <div class="btn-row">
-      <button class="btn btn-red" onclick="allOff()">
-        🚫 All OFF
-      </button>
-      <button class="btn" onclick="load()">
-        🔄 Refresh
-      </button>
-      <div class="spacer"></div>
-      <span style="font-size:.7rem;color:var(--tx3)">
-        <b id="pump-timer" style="color:var(--green)"></b>
-      </span>
+      <button class="btn btn-red"   onclick="allOff()">🚫 All OFF</button>
+      <button class="btn btn-green" onclick="load()">🔄 Refresh</button>
     </div>
   </div>
 
-  <!-- ══ System Control ════════════════════════════════════ -->
+  <!-- System Control -->
   <div class="sec">
     <div class="sec-hdr">
       <div class="sec-title"><span class="sec-icon">⚙️</span> System Control</div>
     </div>
     <div class="btn-row" style="margin-bottom:12px">
-
-      <!-- Sleep -->
-      <input type="number" id="ssec" value="300"
-             min="10" max="3600" style="width:72px">
+      <input type="number" id="ssec" value="300" min="10" max="3600" style="width:72px">
       <span style="font-size:.75rem;color:var(--tx3)">sec</span>
-      <button class="btn btn-amber" onclick="goSleep()">
-        😴 Sleep
-      </button>
-
+      <button class="btn btn-amber" onclick="goSleep()">😴 Sleep</button>
       <div class="divider"></div>
-
-      <!-- Reset -->
-      <button class="btn btn-purple" onclick="doReset()">
-        🔁 Reset ESP32
-      </button>
-
+      <button class="btn btn-purple" onclick="doReset()">🔁 Reset ESP32</button>
       <div class="spacer"></div>
-
-      <!-- Refresh interval -->
-      <span style="font-size:.7rem;color:var(--tx3)">Auto: 15s</span>
+      <span style="font-size:.7rem;color:var(--tx3)">Auto refresh: 15s</span>
     </div>
   </div>
 
-  <!-- ══ OTA Upload ═════════════════════════════════════════ -->
+  <!-- OTA Upload -->
   <div class="sec">
     <div class="sec-hdr">
       <div class="sec-title"><span class="sec-icon">📦</span> OTA File Upload</div>
     </div>
     <div class="btn-row" style="flex-wrap:wrap;gap:8px">
-      <input type="password" id="opwd"
-             placeholder="🔑 OTA password" style="width:140px">
+      <input type="password" id="opwd" placeholder="🔑 OTA password" style="width:140px">
       <input type="file" id="ofile" accept=".py,.html">
-      <button class="btn btn-blue" onclick="doOTA()">
-        ⬆️ Upload
-      </button>
+      <button class="btn btn-blue" onclick="doOTA()">⬆️ Upload</button>
     </div>
     <div id="ota-msg"></div>
   </div>
 
-  <!-- ══ MQTT Cloud Config ══════════════════════════════════ -->
+  <!-- MQTT Cloud Config -->
   <div class="sec">
     <div class="sec-hdr">
       <div class="sec-title"><span class="sec-icon">📡</span> MQTT Cloud Config</div>
@@ -419,8 +320,7 @@ input:focus{border-color:var(--blue)}
       <div class="btn-row">
         <span style="font-size:.75rem;color:var(--tx3);min-width:60px">Broker</span>
         <input type="text" id="cfg-host"
-               placeholder="xxxxxxxx.s1.eu.hivemq.cloud"
-               style="flex:1">
+               placeholder="xxxxxxxx.s1.eu.hivemq.cloud" style="flex:1">
       </div>
       <div class="btn-row">
         <span style="font-size:.75rem;color:var(--tx3);min-width:60px">User</span>
@@ -434,12 +334,11 @@ input:focus{border-color:var(--blue)}
     </div>
   </div>
 
-  <!-- ══ Event Log ══════════════════════════════════════════ -->
+  <!-- Event Log -->
   <div class="sec">
     <div class="sec-hdr">
       <div class="sec-title"><span class="sec-icon">📋</span> Event Log</div>
-      <button class="btn" onclick="clearLog()"
-              style="padding:4px 10px;font-size:.68rem">
+      <button class="btn" onclick="clearLog()" style="padding:4px 10px;font-size:.68rem">
         🗑️ Clear
       </button>
     </div>
@@ -449,10 +348,9 @@ input:focus{border-color:var(--blue)}
 </main>
 
 <script>
-
-// ══════════════════════════════════════════════════════════════
-// CONFIG — HiveMQ Cloud
-// ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════
+// CONFIG — HiveMQ Cloud (يتغير من واجهة الـ UI)
+// ══════════════════════════════════════════════
 let MQTT_HOST = "c90f783efca941e18bc649fcd3037ee7.s1.eu.hivemq.cloud";
 let MQTT_PORT = 8884;
 let MQTT_USER = "M.M.K";
@@ -462,21 +360,20 @@ const TOPIC_SENSORS = "farm/sensors";
 const TOPIC_STATUS  = "farm/status";
 const TOPIC_CMD     = "farm/cmd";
 
-// ── State ─────────────────────────────────────────────────
-const rs   = {1:false,2:false,3:false,4:false};
-const rn   = {1:'Pump',2:'Relay 2',3:'Relay 3',4:'Relay 4'};
-const ri   = {1:'💧',2:'🔌',3:'🔌',4:'🔌'};
+// ── State ──────────────────────────────────────
+const rs = {1:false,2:false,3:false,4:false};
+const rn = {1:'Pump',2:'Relay 2',3:'Relay 3',4:'Lamp'};
+const ri = {1:'💧',2:'🔌',3:'🔌',4:'💡'};
 const boot = Date.now();
-let   mqttClient = null;
-let   lastData   = null;
+let mqttClient = null;
 
-// ── History for charts ────────────────────────────────────
+// ── Charts ─────────────────────────────────────
 const hist = {labels:[],temp:[],soil:[]};
 const MAX  = 24;
 
-// ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 // LOG
-// ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 function lg(msg, type='info'){
   const d = document.getElementById('log');
   const t = new Date().toLocaleTimeString();
@@ -484,13 +381,11 @@ function lg(msg, type='info'){
     `<span class="ts">[${t}]</span> <span class="${type}">${msg}</span>\n`
     + d.innerHTML;
 }
-function clearLog(){
-  document.getElementById('log').innerHTML = '';
-}
+function clearLog(){ document.getElementById('log').innerHTML = ''; }
 
-// ══════════════════════════════════════════════════════════════
-// ALERT BANNER
-// ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════
+// ALERT
+// ══════════════════════════════════════════════
 function showAlert(msg, icon='⚠️'){
   const b = document.getElementById('alert-banner');
   document.getElementById('alert-msg').textContent  = msg;
@@ -499,35 +394,26 @@ function showAlert(msg, icon='⚠️'){
   setTimeout(() => b.classList.remove('show'), 6000);
 }
 
-// ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 // CHARTS
-// ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 const chartCfg = (label, color, data) => ({
   type:'line',
   data:{
     labels:hist.labels,
     datasets:[{
       label, data,
-      borderColor:color,
-      borderWidth:1.5,
-      pointRadius:2,
-      pointBackgroundColor:color,
-      tension:0.4,
-      fill:true,
-      backgroundColor:color+'18',
+      borderColor:color, borderWidth:1.5,
+      pointRadius:2, pointBackgroundColor:color,
+      tension:0.4, fill:true, backgroundColor:color+'18',
     }]
   },
   options:{
-    responsive:true,
-    maintainAspectRatio:false,
+    responsive:true, maintainAspectRatio:false,
     animation:{duration:300},
     plugins:{legend:{display:false},tooltip:{
-      backgroundColor:'#0f172a',
-      borderColor:'#1e293b',
-      borderWidth:1,
-      titleColor:'#94a3b8',
-      bodyColor:'#e2e8f0',
-      padding:8,
+      backgroundColor:'#0f172a',borderColor:'#1e293b',borderWidth:1,
+      titleColor:'#94a3b8',bodyColor:'#e2e8f0',padding:8,
     }},
     scales:{
       x:{ticks:{color:'#334155',font:{size:9},maxRotation:0},grid:{color:'#0f172a'}},
@@ -536,58 +422,41 @@ const chartCfg = (label, color, data) => ({
   }
 });
 
-const chartTemp = new Chart(
-  document.getElementById('chart-temp'),
-  chartCfg('Temp°C','#f59e0b',hist.temp)
-);
-const chartSoil = new Chart(
-  document.getElementById('chart-soil'),
-  chartCfg('Soil%','#22c55e',hist.soil)
-);
+const chartTemp = new Chart(document.getElementById('chart-temp'), chartCfg('Temp°C','#f59e0b',hist.temp));
+const chartSoil = new Chart(document.getElementById('chart-soil'), chartCfg('Soil%','#22c55e',hist.soil));
 
 function pushHist(temp, soil){
   const t = new Date().toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});
-  hist.labels.push(t);
-  hist.temp.push(temp);
-  hist.soil.push(soil);
-  if(hist.labels.length > MAX){
-    hist.labels.shift();hist.temp.shift();hist.soil.shift();
-  }
-  chartTemp.update('none');
-  chartSoil.update('none');
+  hist.labels.push(t); hist.temp.push(temp); hist.soil.push(soil);
+  if(hist.labels.length > MAX){ hist.labels.shift();hist.temp.shift();hist.soil.shift(); }
+  chartTemp.update('none'); chartSoil.update('none');
 }
 
-// ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 // UPDATE UI
-// ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 function updateUI(d){
-  lastData = d;
-
-  // ── sensor values ──
-  function sv(id,val,unit){
+  function sv(id, val, unit){
     document.getElementById(id).innerHTML =
-      val!=null ? val+'<span class="card-unit">'+unit+'</span>' : '--';
+      val != null ? val+'<span class="card-unit">'+unit+'</span>' : '--';
   }
-  const T = d.temperature, H = d.humidity,
-        S = d.soil_pct,    K = d.tank_pct;
+  const T = d.temperature, H = d.humidity, S = d.soil_pct, K = d.tank_pct;
 
   sv('vt', T, '°C');
   sv('vh', H, '%');
   sv('vs', S, '%');
   sv('vk', K, '%');
 
-  // ── status labels ──
   document.getElementById('st').textContent =
-    T!=null ? (T>38?'🔥 Very hot':T>30?'🌡 Hot':T>20?'✅ Normal':'❄️ Cool') : '--';
+    T!=null?(T>38?'🔥 Very hot':T>30?'🌡 Hot':T>20?'✅ Normal':'❄️ Cool'):'--';
   document.getElementById('sh').textContent =
-    H!=null ? (H>80?'💦 Very humid':H>50?'✅ Normal':'🌵 Dry') : '--';
+    H!=null?(H>80?'💦 Very humid':H>50?'✅ Normal':'🌵 Dry'):'--';
   document.getElementById('ss').textContent =
-    S!=null ? (S<30?'🚨 Dry — irrigate!':S>70?'💦 Wet — OK':'✅ Good') : '--';
+    S!=null?(S<30?'🚨 Dry — irrigate!':S>70?'💦 Wet — OK':'✅ Good'):'--';
   document.getElementById('sk').textContent =
-    d.tank_dist!=null ? d.tank_dist+'cm from sensor' : '--';
+    d.tank_dist!=null?d.tank_dist+'cm from sensor':'--';
 
-  // ── bars ──
-  function sb(id,val,max,color){
+  function sb(id, val, max, color){
     const el=document.getElementById(id);
     if(el&&val!=null){
       el.style.width=(Math.min(val/max,1)*100)+'%';
@@ -596,156 +465,174 @@ function updateUI(d){
   }
   sb('bt',T,50);
   sb('bh',H,100);
-  const soilColor = S!=null?(S<30?'#ef4444':S>70?'#38bdf8':'#22c55e'):'#22c55e';
-  sb('bs',S,100,soilColor);
-  sb('bk',K,100);
+  sb('bs',S,100,S!=null?(S<30?'#ef4444':S>70?'#38bdf8':'#22c55e'):'#22c55e');
 
-  // ── tank LEDs ──
   updateTankLEDs(K);
 
-  // ── relay buttons ──
+  // ── relay state from ESP32 ──
   [1,2,3,4].forEach(n=>{
-    rs[n]=d['relay_'+n]||false;
-    updBtn(n);
+    if(d['relay_'+n] !== undefined){ rs[n]=d['relay_'+n]; updBtn(n); }
   });
 
-  // ── stats ──
   document.getElementById('s-ip').textContent   = location.hostname;
   document.getElementById('s-time').textContent = new Date().toLocaleTimeString();
-  const up = Math.floor((Date.now()-boot)/1000);
-  document.getElementById('s-up').textContent   =
-    up<60?up+'s':Math.floor(up/60)+'m '+(up%60)+'s';
   if(d.free_ram)
     document.getElementById('s-ram').textContent = Math.round(d.free_ram/1024)+'KB';
 
-  // ── header subtitle ──
   document.getElementById('hdr-sub').textContent =
     `T:${T??'--'}°C  H:${H??'--'}%  Soil:${S??'--'}%  Tank:${K??'--'}%`;
 
-  // ── alerts ──
   if(S!=null && S<30) showAlert('Soil is dry — auto irrigation may activate!','🌵');
   if(K!=null && K<15) showAlert('Tank level critical — refill needed!','🚨');
 
-  // ── history ──
   if(T!=null && S!=null) pushHist(T,S);
-
-  // ── web dot ──
-  document.getElementById('web-dot').className = 'dot live on';
-  document.getElementById('web-txt').textContent = 'local ✓';
 }
 
-// ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 // TANK LEDs
-// ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 function updateTankLEDs(pct){
-  const leds = [
-    {id:'tl1',threshold:25, cls:'on-red'},
-    {id:'tl2',threshold:50, cls:'on-amber'},
-    {id:'tl3',threshold:75, cls:'on-green'},
-    {id:'tl4',threshold:100,cls:'on-bright'},
-  ];
-  leds.forEach(l=>{
+  [{id:'tl1',t:25,cls:'on-red'},{id:'tl2',t:50,cls:'on-amber'},
+   {id:'tl3',t:75,cls:'on-green'},{id:'tl4',t:100,cls:'on-bright'}]
+  .forEach(l=>{
     const el=document.getElementById(l.id);
     if(!el) return;
-    el.className = 'tled';
-    if(pct!=null && pct>=l.threshold) el.classList.add(l.cls);
+    el.className='tled';
+    if(pct!=null && pct>=l.t) el.classList.add(l.cls);
   });
 }
 
-// ══════════════════════════════════════════════════════════════
-// HTTP — local fetch
-// ══════════════════════════════════════════════════════════════
-async function load(){
-  try{
-    const d = await (await fetch('/api/data')).json();
-    updateUI(d);
-    lg('Local fetch OK','ok');
-  } catch(e){
-    document.getElementById('web-dot').className='dot err';
-    document.getElementById('web-txt').textContent='local ✗';
-    lg('Local offline — cloud only','warn');
+// ══════════════════════════════════════════════
+// RELAY BUTTONS
+// ══════════════════════════════════════════════
+function updBtn(n){
+  const b  =document.getElementById('r'+n);
+  const txt=document.getElementById('r'+n+'-txt');
+  if(!b) return;
+  b.className='rbtn '+(rs[n]?'ron':'roff');
+  if(txt) txt.textContent=rn[n]+' — '+(rs[n]?'ON':'OFF');
+}
+
+// ══════════════════════════════════════════════
+// CONTROL — MQTT first, HTTP fallback
+// ══════════════════════════════════════════════
+function setCtrlMode(mode){
+  const el=document.getElementById('ctrl-mode');
+  const via=document.getElementById('ctrl-via');
+  if(mode==='mqtt'){
+    el.className='mode-badge mqtt'; el.textContent='☁️ MQTT';
+    via.textContent='sending via cloud';
+  } else if(mode==='http'){
+    el.className='mode-badge http'; el.textContent='🌐 HTTP';
+    via.textContent='sending via local network';
+  } else {
+    el.className='mode-badge fail'; el.textContent='❌ offline';
+    via.textContent='no connection';
   }
 }
 
-// ══════════════════════════════════════════════════════════════
-// RELAY CONTROL
-// ══════════════════════════════════════════════════════════════
-function updBtn(n){
-  const b   = document.getElementById('r'+n);
-  const txt = document.getElementById('r'+n+'-txt');
-  if(!b) return;
-  const on = rs[n];
-  b.className = 'rbtn '+(on?'ron':'roff');
-  if(txt) txt.textContent = rn[n]+' — '+(on?'ON':'OFF');
+function mqttSend(cmd){
+  if(mqttClient && mqttClient.connected){
+    mqttClient.publish(TOPIC_CMD, cmd);
+    lg('📤 MQTT → '+cmd,'info');
+    return true;
+  }
+  return false;
 }
 
+async function httpRelay(num, state){
+  const ctrl=new AbortController();
+  const tid =setTimeout(()=>ctrl.abort(), 5000);
+  try{
+    const res=await fetch('/api/relay',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({num, state}),
+      signal:ctrl.signal
+    });
+    clearTimeout(tid);
+    if(res.ok) return await res.json();
+    return null;
+  } catch(e){
+    clearTimeout(tid);
+    return null;
+  }
+}
+
+// ── TOG: MQTT first → HTTP fallback ──
 async function tog(n){
   const s   = !rs[n];
   const cmd = 'relay_'+n+'_'+(s?'on':'off');
 
-  // ✅ MQTT Cloud أولاً (فوري) ثم HTTP fallback
+  // 1️⃣ MQTT — فوري عبر السحابة
   if(mqttSend(cmd)){
     rs[n]=s; updBtn(n);
-    lg(`${ri[n]} Relay ${n} → ${s?'ON':'OFF'} ☁️ MQTT`,'ok');
+    setCtrlMode('mqtt');
+    lg(`${ri[n]} ${rn[n]} → ${s?'ON':'OFF'} ☁️`,'ok');
     return;
   }
 
-  // HTTP local fallback
-  try{
-    const ctrl = new AbortController();
-    const tid  = setTimeout(()=>ctrl.abort(), 5000);
-    const res  = await fetch('/api/relay',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({num:n,state:s}),
-      signal:ctrl.signal
-    });
-    clearTimeout(tid);
-    if(res.ok){
-      const data = await res.json();
-      const actual = data.state !== undefined ? data.state : s;
-      rs[n]=actual; updBtn(n);
-      lg(`${ri[n]} Relay ${n} → ${actual?'ON':'OFF'} 🌐 HTTP`,'ok');
-    }
-  } catch(e){
-    lg('❌ Both MQTT and HTTP failed!','err');
+  // 2️⃣ HTTP — محلي
+  lg('⚡ MQTT offline — trying HTTP...','warn');
+  const res=await httpRelay(n, s);
+  if(res && res.ok){
+    const actual = res.state !== undefined ? res.state : s;
+    rs[n]=actual; updBtn(n);
+    setCtrlMode('http');
+    lg(`${ri[n]} ${rn[n]} → ${actual?'ON':'OFF'} 🌐`,'ok');
+    return;
   }
+
+  // 3️⃣ كلاهما فشل
+  setCtrlMode('fail');
+  lg(`❌ ${rn[n]}: both MQTT and HTTP failed`,'err');
+  showAlert('No connection to ESP32!','❌');
 }
 
+// ── ALL OFF ──
 async function allOff(){
-  // MQTT first
   if(mqttSend('all_off')){
     [1,2,3,4].forEach(n=>{rs[n]=false;updBtn(n);});
-    lg('🚫 All relays OFF ☁️ MQTT','warn');
+    setCtrlMode('mqtt');
+    lg('🚫 All OFF ☁️ MQTT','warn');
     return;
   }
-  // HTTP fallback
+  const res=await httpRelay(0, false);
+  if(res && res.ok){
+    [1,2,3,4].forEach(n=>{rs[n]=res['relay_'+n]||false;updBtn(n);});
+    setCtrlMode('http');
+    lg('🚫 All OFF 🌐 HTTP','warn');
+    return;
+  }
+  setCtrlMode('fail');
+  lg('❌ All OFF failed','err');
+}
+
+// ══════════════════════════════════════════════
+// HTTP — local fetch (data only)
+// ══════════════════════════════════════════════
+async function load(){
   try{
-    const ctrl = new AbortController();
-    const tid  = setTimeout(()=>ctrl.abort(), 5000);
-    const res  = await fetch('/api/relay',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({num:0,state:false}),
-      signal:ctrl.signal
-    });
-    clearTimeout(tid);
-    if(res.ok){
-      const data = await res.json();
-      [1,2,3,4].forEach(n=>{rs[n]=data['relay_'+n]||false;updBtn(n);});
-      lg('🚫 All relays OFF 🌐 HTTP','warn');
-    }
+    const ctrl=new AbortController();
+    setTimeout(()=>ctrl.abort(),8000);
+    const d=await (await fetch('/api/data',{signal:ctrl.signal})).json();
+    updateUI(d);
+    document.getElementById('web-dot').className='dot live on';
+    document.getElementById('web-txt').textContent='local ✓';
+    lg('🔄 Refreshed (HTTP)','ok');
   } catch(e){
-    lg('❌ Both MQTT and HTTP failed!','err');
+    document.getElementById('web-dot').className='dot warn';
+    document.getElementById('web-txt').textContent='local ✗';
+    lg('⚠️ Local offline — using cloud only','warn');
   }
 }
 
-// ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 // SLEEP & RESET
-// ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 async function goSleep(){
   const s=parseInt(document.getElementById('ssec').value)||300;
-  if(!confirm(`😴 Put ESP32 to sleep for ${s} seconds?`)) return;
+  if(!confirm(`😴 Sleep for ${s} seconds?`)) return;
 
   if(mqttSend('sleep_now')){
     lg(`😴 Sleep cmd sent ☁️ MQTT`,'warn');
@@ -754,11 +641,13 @@ async function goSleep(){
       const ctrl=new AbortController();
       setTimeout(()=>ctrl.abort(),5000);
       await fetch('/api/sleep',{
-        method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({seconds:s}),signal:ctrl.signal
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({seconds:s}),
+        signal:ctrl.signal
       });
       lg(`😴 Sleep cmd sent 🌐 HTTP`,'warn');
-    } catch(e){ lg('❌ Sleep cmd failed','err'); return; }
+    } catch(e){ lg('❌ Sleep failed','err'); return; }
   }
   document.getElementById('web-dot').className='dot warn';
   document.getElementById('web-txt').textContent='sleeping...';
@@ -781,19 +670,19 @@ async function doReset(){
   document.getElementById('web-txt').textContent='restarting...';
 }
 
-// ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 // OTA
-// ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 async function doOTA(){
   const pwd  = document.getElementById('opwd').value;
   const file = document.getElementById('ofile').files[0];
   const msg  = document.getElementById('ota-msg');
-  if(!file){alert('📁 Select a file first');return;}
+  if(!file){ alert('📁 Select a file first'); return; }
   msg.textContent='⏳ Uploading '+file.name+'...';
   msg.style.color='#94a3b8';
   try{
-    const buf = await file.arrayBuffer();
-    const r   = await fetch('/ota',{
+    const buf=await file.arrayBuffer();
+    const r=await fetch('/ota',{
       method:'POST',
       headers:{
         'X-OTA-Password':pwd,
@@ -802,54 +691,63 @@ async function doOTA(){
       },
       body:buf
     });
-    const txt = await r.text();
-    msg.textContent = (r.ok?'✅ OK: ':'❌ FAIL: ')+txt;
-    msg.style.color = r.ok?'#22c55e':'#ef4444';
-    lg('📦 OTA '+(r.ok?'ok':'fail')+': '+file.name, r.ok?'ok':'err');
+    const txt=await r.text();
+    msg.textContent=(r.ok?'✅ ':'❌ ')+txt;
+    msg.style.color=r.ok?'#22c55e':'#ef4444';
+    lg('📦 OTA '+(r.ok?'OK':'FAIL')+': '+file.name, r.ok?'ok':'err');
+    if(r.ok && (file.name==='config.py'||file.name==='main.py'||file.name==='wifi_manager.py')){
+      msg.textContent += ' — ESP32 restarting...';
+    }
   } catch(e){
-    msg.textContent='❌ Error: '+e;
+    msg.textContent='❌ '+e;
     msg.style.color='#ef4444';
+    lg('📦 OTA error: '+e,'err');
   }
 }
 
-// ══════════════════════════════════════════════════════════════
-// MQTT Cloud
-// ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════
+// MQTT CLOUD
+// ══════════════════════════════════════════════
 function mqttConnect(){
-  const host = document.getElementById('cfg-host')?.value || MQTT_HOST;
-  const user = document.getElementById('cfg-user')?.value || MQTT_USER;
-  const pass = document.getElementById('cfg-pass')?.value || MQTT_PASS;
+  const host=document.getElementById('cfg-host')?.value || MQTT_HOST;
+  const user=document.getElementById('cfg-user')?.value || MQTT_USER;
+  const pass=document.getElementById('cfg-pass')?.value || MQTT_PASS;
 
   if(mqttClient){ mqttClient.end(true); mqttClient=null; }
 
-  const url = `wss://${host}:${MQTT_PORT}/mqtt`;
-  mqttClient = mqtt.connect(url,{
+  const url=`wss://${host}:${MQTT_PORT}/mqtt`;
+  lg('📡 Connecting to '+host+'...','info');
+
+  mqttClient=mqtt.connect(url,{
     username:user, password:pass,
     clientId:'farm-dash-'+Math.random().toString(16).slice(2,8),
-    reconnectPeriod:4000,
-    connectTimeout:12000,
+    reconnectPeriod:5000,
+    connectTimeout:15000,
   });
 
   mqttClient.on('connect',()=>{
     document.getElementById('mqtt-dot').className='dot live on';
     document.getElementById('mqtt-txt').textContent='cloud ✓';
-    lg('📡 MQTT cloud connected','ok');
-    mqttClient.subscribe([TOPIC_SENSORS,TOPIC_STATUS]);
+    setCtrlMode('mqtt');
+    lg('✅ MQTT cloud connected','ok');
+    mqttClient.subscribe([TOPIC_SENSORS, TOPIC_STATUS]);
   });
 
   mqttClient.on('message',(topic,payload)=>{
     const msg=payload.toString();
     if(topic===TOPIC_STATUS){
       const on=msg==='online';
-      lg('📟 Device: '+msg, on?'ok':'warn');
+      document.getElementById('web-dot').className='dot '+(on?'live on':'warn');
+      document.getElementById('web-txt').textContent=on?'ESP32 online':'ESP32 offline';
+      lg('📟 ESP32: '+msg, on?'ok':'warn');
       return;
     }
     if(topic===TOPIC_SENSORS){
       try{
         const d=JSON.parse(msg);
         updateUI(d);
-        lg(`📊 Cloud data received`,'info');
-      } catch(e){ lg('Parse error: '+e,'err'); }
+        lg('📊 Cloud data received','info');
+      } catch(e){ lg('❌ Parse error: '+e,'err'); }
     }
   });
 
@@ -868,30 +766,20 @@ function mqttConnect(){
   mqttClient.on('close',()=>{
     document.getElementById('mqtt-dot').className='dot err';
     document.getElementById('mqtt-txt').textContent='cloud ✗';
+    if(mqttClient && !mqttClient.connected) setCtrlMode('http');
   });
 }
 
 function mqttReconnect(){
-  MQTT_HOST = document.getElementById('cfg-host').value||MQTT_HOST;
-  MQTT_USER = document.getElementById('cfg-user').value||MQTT_USER;
-  MQTT_PASS = document.getElementById('cfg-pass').value||MQTT_PASS;
-  lg('🔗 Connecting to MQTT cloud...','info');
+  MQTT_HOST=document.getElementById('cfg-host').value||MQTT_HOST;
+  MQTT_USER=document.getElementById('cfg-user').value||MQTT_USER;
+  MQTT_PASS=document.getElementById('cfg-pass').value||MQTT_PASS;
   mqttConnect();
 }
 
-function mqttSend(cmd){
-  if(mqttClient && mqttClient.connected){
-    mqttClient.publish(TOPIC_CMD, cmd);
-    lg('📤 MQTT cmd: '+cmd,'info');
-    return true;
-  }
-  return false;
-}
-
-// ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 // START
-// ══════════════════════════════════════════════════════════════
-
+// ══════════════════════════════════════════════
 load();
 mqttConnect();
 setInterval(load, 15000);
