@@ -683,30 +683,61 @@ async function tog(n){
   const s = !rs[n];
   const cmd = 'relay_'+n+'_'+(s?'on':'off');
   try{
-    await fetch('/api/relay',{
+    // ✅ FIX: timeout 8s + تأكيد الحالة الفعلية من الـ server
+    const ctrl = new AbortController();
+    const tid  = setTimeout(()=>ctrl.abort(), 8000);
+    const res  = await fetch('/api/relay',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({num:n,state:s})
+      body:JSON.stringify({num:n,state:s}),
+      signal: ctrl.signal
     });
+    clearTimeout(tid);
+    if(res.ok){
+      const data = await res.json();
+      // استخدم الحالة الفعلية من الـ ESP32 وليس ما طلبناه
+      const actual = data.state !== undefined ? data.state : s;
+      rs[n] = actual;
+      updBtn(n);
+      lg(`${ri[n]} Relay ${n} → ${actual?'ON':'OFF'} ✓`, actual?'ok':'warn');
+    } else {
+      lg(`❌ Relay ${n} error: ${res.status}`,'err');
+    }
   } catch(e){
-    if(!mqttSend(cmd)){
-      lg('No connection!','err'); return;
+    // fallback: MQTT
+    if(mqttSend(cmd)){
+      rs[n]=s; updBtn(n);
+      lg(`${ri[n]} Relay ${n} → ${s?'ON':'OFF'} (via MQTT)`, s?'ok':'warn');
+    } else {
+      lg('❌ No connection! Check WiFi.','err');
     }
   }
-  rs[n]=s; updBtn(n);
-  lg(`${ri[n]} Relay ${n} → ${s?'ON':'OFF'}`, s?'ok':'warn');
 }
 
 async function allOff(){
   try{
-    await fetch('/api/relay',{
+    const ctrl = new AbortController();
+    const tid  = setTimeout(()=>ctrl.abort(), 8000);
+    const res  = await fetch('/api/relay',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({num:0,state:false})
+      body:JSON.stringify({num:0,state:false}),
+      signal: ctrl.signal
     });
-  } catch(e){ mqttSend('all_off'); }
-  [1,2,3,4].forEach(n=>{rs[n]=false;updBtn(n);});
-  lg('🚫 All relays OFF','warn');
+    clearTimeout(tid);
+    if(res.ok){
+      const data = await res.json();
+      [1,2,3,4].forEach(n=>{
+        rs[n] = data['relay_'+n] || false;
+        updBtn(n);
+      });
+      lg('🚫 All relays OFF ✓','warn');
+    }
+  } catch(e){
+    mqttSend('all_off');
+    [1,2,3,4].forEach(n=>{rs[n]=false;updBtn(n);});
+    lg('🚫 All OFF (via MQTT)','warn');
+  }
 }
 
 // ══════════════════════════════════════════════════════════════
