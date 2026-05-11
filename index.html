@@ -634,23 +634,25 @@ async function goSleep(){
   const s=parseInt(document.getElementById('ssec').value)||300;
   if(!confirm(`😴 Sleep for ${s} seconds?`)) return;
 
-  if(mqttSend('sleep_now')){
-    lg(`😴 Sleep cmd sent ☁️ MQTT`,'warn');
+  // ✅ FIX: send exact seconds via MQTT using pump_ style: sleep_N
+  // MQTT sends 'sleep_NNN' so ESP32 knows exact duration
+  if(mqttSend('sleep_'+s)){
+    lg(`😴 Sleep ${s}s sent ☁️ MQTT`,'warn');
   } else {
     try{
       const ctrl=new AbortController();
       setTimeout(()=>ctrl.abort(),5000);
-      await fetch('/api/sleep',{
+      const res=await fetch('/api/sleep',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({seconds:s}),
         signal:ctrl.signal
       });
-      lg(`😴 Sleep cmd sent 🌐 HTTP`,'warn');
+      if(res.ok) lg(`😴 Sleep ${s}s sent 🌐 HTTP`,'warn');
     } catch(e){ lg('❌ Sleep failed','err'); return; }
   }
   document.getElementById('web-dot').className='dot warn';
-  document.getElementById('web-txt').textContent='sleeping...';
+  document.getElementById('web-txt').textContent='sleeping '+s+'s...';
 }
 
 async function doReset(){
