@@ -1,777 +1,1094 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<meta name="theme-color" content="#0a0f1e">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#040d18">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <title>Smart Farm IoT</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mqtt@5/dist/mqtt.min.js"></script>
 <style>
+/* ═══════════════════════════ TOKENS ═══════════════════════════ */
 :root{
-  --bg0:#0a0f1e;--bg1:#0f172a;--bg2:#1e293b;
-  --bd:#1e293b;--bd2:#334155;
-  --tx:#e2e8f0;--tx2:#94a3b8;--tx3:#475569;
-  --blue:#38bdf8;--green:#22c55e;--amber:#f59e0b;
-  --red:#ef4444;--cyan:#06b6d4;--purple:#a78bfa;
+  --c0:#040d18;
+  --c1:#071525;
+  --c2:#0b1e35;
+  --c3:#102644;
+  --glass:rgba(7,21,37,.8);
+  --bd:rgba(255,255,255,.05);
+  --bd2:rgba(255,255,255,.1);
+
+  --tx:#ddeeff;
+  --tx2:#7a9bbf;
+  --tx3:#364f6a;
+
+  --teal:#00e5b4;
+  --tealD:#00b890;
+  --blue:#5aabff;
+  --amber:#ffbe3d;
+  --red:#ff4d6d;
+  --violet:#c084fc;
+  --green:#4ade80;
+
+  --r:12px;--r2:18px;--r3:24px;
+  --sh:0 12px 40px rgba(0,0,0,.5);
+  --sh-sm:0 4px 16px rgba(0,0,0,.3);
+  --sh-teal:0 0 24px rgba(0,229,180,.15);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html{scroll-behavior:smooth}
+html,body{height:100%}
 body{
-  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
-  background:var(--bg0);color:var(--tx);
-  min-height:100vh;font-size:14px;
+  font-family:'Inter',system-ui,sans-serif;
+  color:var(--tx);
+  font-size:14px;line-height:1.5;
+  overflow-x:hidden;
 }
+
+/* ─── BG effects ─── */
+/* ── Animated gradient background ── */
+@keyframes bgShift{
+  0%  {background-position:0% 50%}
+  50% {background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+body{
+  background:
+    radial-gradient(ellipse 80% 60% at 80% 10%, rgba(0,229,180,.09) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 10% 80%, rgba(90,171,255,.07) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 50% 50%, rgba(192,132,252,.04) 0%, transparent 70%),
+    linear-gradient(160deg,#020a14 0%,#030e1c 40%,#040d18 70%,#020b14 100%);
+  background-size:200% 200%;
+  animation:bgShift 18s ease infinite;
+}
+
+/* ── Floating particles canvas ── */
+#particles{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  opacity:.6;
+}
+
+/* ── Mesh overlay ── */
+.bg-mesh{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(0,229,180,.03) 0%, transparent 40%),
+    radial-gradient(circle at 80% 80%, rgba(90,171,255,.03) 0%, transparent 40%),
+    radial-gradient(circle at 60% 10%, rgba(192,132,252,.025) 0%, transparent 35%);
+}
+
+/* ── Scanline texture ── */
+.bg-scan{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:repeating-linear-gradient(
+    0deg,
+    transparent,transparent 3px,
+    rgba(0,229,180,.006) 3px,rgba(0,229,180,.006) 4px
+  );
+}
+
+.wrap{position:relative;z-index:1}
+
+/* ═══════════════════════════ SPLASH ═══════════════════════════ */
+#splash{
+  position:fixed;inset:0;z-index:9999;
+  background:linear-gradient(160deg,#020a14,#030e1c);
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:28px;
+}
+.splash-logo{
+  width:80px;height:80px;border-radius:22px;
+  background:linear-gradient(135deg,var(--teal),var(--blue));
+  display:flex;align-items:center;justify-content:center;
+  font-size:38px;
+  box-shadow:0 0 60px rgba(0,229,180,.35);
+  animation:splashPop .6s cubic-bezier(.34,1.56,.64,1) both;
+}
+.splash-title{
+  font-family:'Syne',sans-serif;
+  font-size:1.6rem;font-weight:800;
+  color:var(--tx);letter-spacing:.04em;
+  animation:fadeUp .5s .2s ease both;
+}
+.splash-sub{
+  font-size:.8rem;color:var(--tx3);
+  animation:fadeUp .5s .3s ease both;
+  letter-spacing:.08em;text-transform:uppercase;
+}
+.splash-bar-wrap{
+  width:180px;height:3px;background:var(--c3);border-radius:2px;
+  overflow:hidden;animation:fadeUp .4s .4s ease both;
+}
+.splash-bar{
+  height:100%;width:0%;
+  background:linear-gradient(90deg,var(--teal),var(--blue));
+  border-radius:2px;
+  animation:loadBar 1.8s .5s ease forwards;
+}
+@keyframes loadBar{0%{width:0%}60%{width:70%}100%{width:100%}}
+@keyframes splashPop{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes fadeUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+/* ═══════════════════════════ HEADER ═══════════════════════════ */
 .header{
-  background:var(--bg1);border-bottom:1px solid var(--bd);
-  padding:12px 16px;display:flex;align-items:center;
-  justify-content:space-between;position:sticky;top:0;z-index:100;
+  height:62px;
+  background:var(--glass);
+  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border-bottom:1px solid var(--bd);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;
+  position:sticky;top:0;z-index:100;
 }
-.header-left{display:flex;align-items:center;gap:10px}
-.logo{
-  width:34px;height:34px;border-radius:10px;
-  background:linear-gradient(135deg,#0ea5e9,#22c55e);
-  display:flex;align-items:center;justify-content:center;font-size:18px;
+.brand{display:flex;align-items:center;gap:12px}
+.brand-icon{
+  width:36px;height:36px;border-radius:10px;
+  background:linear-gradient(135deg,var(--teal),var(--blue));
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;
+  box-shadow:var(--sh-teal);
 }
-.header h1{font-size:.95rem;font-weight:600;color:var(--tx)}
-.header-sub{font-size:.7rem;color:var(--tx3);margin-top:1px}
-.pills{display:flex;gap:6px;align-items:center}
+.brand-name{
+  font-family:'Syne',sans-serif;font-size:.9rem;font-weight:800;
+  color:var(--tx);letter-spacing:.06em;
+}
+.brand-sub{font-size:.62rem;color:var(--tx3);margin-top:1px}
+
+.pills{display:flex;gap:6px}
 .pill{
   display:flex;align-items:center;gap:5px;
-  background:var(--bg2);border:1px solid var(--bd2);
-  border-radius:20px;padding:4px 10px;font-size:.68rem;color:var(--tx2);
+  background:var(--c2);border:1px solid var(--bd);
+  border-radius:30px;padding:5px 11px;
+  font-size:.65rem;color:var(--tx2);
+  transition:border-color .3s;
 }
-.dot{width:7px;height:7px;border-radius:50%;background:var(--tx3)}
-.dot.on{background:var(--green)}
-.dot.err{background:var(--red)}
-.dot.warn{background:var(--amber)}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
-.dot.live{animation:blink 2s infinite}
-main{padding:14px;max-width:900px;margin:0 auto}
+.pill.ok{border-color:rgba(0,229,180,.25)}
+.pill.err{border-color:rgba(255,77,109,.25)}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--tx3);flex-shrink:0;transition:background .3s,box-shadow .3s}
+.dot.on{background:var(--teal);box-shadow:0 0 8px var(--teal)}
+.dot.err{background:var(--red);box-shadow:0 0 8px var(--red)}
+.dot.warn{background:var(--amber);box-shadow:0 0 8px var(--amber)}
+@keyframes dotPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+.dot.live{animation:dotPulse 2s ease-in-out infinite}
+
+/* ═══════════════════════════ MAIN ═══════════════════════════ */
+main{padding:20px 16px 48px;max-width:1100px;margin:0 auto}
+
+/* ─── Network bar ─── */
+.net-bar{
+  display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;
+}
+.net-chip{
+  display:flex;align-items:center;gap:8px;
+  background:var(--c2);border:1px solid var(--bd);
+  border-radius:10px;padding:8px 14px;
+  font-size:.68rem;
+  animation:fadeUp .4s ease both;
+}
+.net-chip.sta{border-color:rgba(90,171,255,.2)}
+.net-chip.ap {border-color:rgba(192,132,252,.2)}
+.nc-lbl{color:var(--tx3);font-size:.6rem;text-transform:uppercase;letter-spacing:.08em;margin-right:4px}
+.nc-val{color:var(--tx);font-weight:600}
+.nc-tag{
+  font-size:.55rem;padding:2px 6px;border-radius:6px;
+  background:rgba(0,229,180,.08);color:var(--teal);
+  border:1px solid rgba(0,229,180,.15);
+  margin-left:2px;
+}
+
+/* ─── Alert ─── */
+.alert{
+  display:none;background:rgba(255,77,109,.07);
+  border:1px solid rgba(255,77,109,.25);
+  border-radius:12px;padding:10px 16px;margin-bottom:14px;
+  font-size:.78rem;color:#fca5a5;align-items:center;gap:8px;
+}
+.alert.show{display:flex;animation:fadeUp .25s ease}
+
+/* ═══════════════════════════ CARDS ═══════════════════════════ */
 .cards{
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
-  gap:10px;margin-bottom:12px;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;margin-bottom:14px;
 }
+@media(max-width:860px){.cards{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:400px){.cards{grid-template-columns:repeat(2,1fr);gap:8px}}
+
 .card{
-  background:var(--bg1);border:1px solid var(--bd);
-  border-radius:14px;padding:14px;position:relative;overflow:hidden;
-  cursor:default;transition:border-color .2s;
+  background:var(--c1);border:1px solid var(--bd);
+  border-radius:var(--r3);
+  padding:18px 16px 16px;
+  position:relative;overflow:hidden;
+  transition:transform .25s,box-shadow .25s,border-color .25s;
+  animation:fadeUp .5s ease both;
 }
-.card:hover{border-color:var(--bd2)}
-.card-accent{position:absolute;top:0;left:0;right:0;height:3px;border-radius:14px 14px 0 0;}
-.card-icon{font-size:18px;margin-bottom:6px;display:block}
-.card-lbl{font-size:.65rem;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;}
-.card-val{font-size:1.75rem;font-weight:700;color:var(--tx);line-height:1;}
-.card-unit{font-size:.75rem;color:var(--tx3);margin-left:2px}
-.card-status{font-size:.68rem;color:var(--tx3);margin-top:5px;min-height:14px}
-.bar{height:3px;background:var(--bg0);border-radius:2px;margin-top:9px;overflow:hidden}
-.bar-fill{height:100%;border-radius:2px;transition:width .8s ease}
-.tank-leds{display:flex;gap:6px;margin-top:8px;align-items:center;}
-.tled{
-  width:12px;height:12px;border-radius:50%;
-  background:var(--bg2);border:1px solid var(--bd2);transition:background .4s,border-color .4s;
+.card:nth-child(1){animation-delay:.05s}
+.card:nth-child(2){animation-delay:.1s}
+.card:nth-child(3){animation-delay:.15s}
+.card:nth-child(4){animation-delay:.2s}
+.card:hover{transform:translateY(-3px);box-shadow:var(--sh);border-color:var(--bd2)}
+
+/* accent top bar */
+.card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  border-radius:var(--r3) var(--r3) 0 0;
 }
-.tled.on-red   {background:#ef4444;border-color:#b91c1c}
-.tled.on-amber {background:#f59e0b;border-color:#b45309}
-.tled.on-green {background:#22c55e;border-color:#15803d}
-.tled.on-bright{background:#4ade80;border-color:#16a34a}
-.sec{background:var(--bg1);border:1px solid var(--bd);border-radius:14px;padding:15px 16px;margin-bottom:12px;}
-.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
-.sec-title{font-size:.68rem;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;font-weight:500;display:flex;align-items:center;gap:6px;}
-.sec-icon{font-size:14px}
-.charts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
-@media(max-width:480px){.charts{grid-template-columns:1fr}}
-.chart-wrap{background:var(--bg1);border:1px solid var(--bd);border-radius:14px;padding:14px}
-.chart-lbl{font-size:.68rem;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
-.chart-box{position:relative;height:130px}
-.relay-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px;}
-@media(min-width:480px){.relay-grid{grid-template-columns:repeat(4,1fr)}}
+.ct::before{background:linear-gradient(90deg,#ffbe3d,#ff4d6d)}
+.ch::before{background:linear-gradient(90deg,#5aabff,#c084fc)}
+.cs::before{background:linear-gradient(90deg,#4ade80,#00e5b4)}
+.ck::before{background:linear-gradient(90deg,#00e5b4,#5aabff)}
+
+/* corner glow */
+.card::after{
+  content:'';position:absolute;
+  bottom:-30px;right:-30px;
+  width:90px;height:90px;border-radius:50%;
+  opacity:.04;transition:opacity .3s;
+}
+.ct::after{background:#ffbe3d}
+.ch::after{background:#5aabff}
+.cs::after{background:#4ade80}
+.ck::after{background:#00e5b4}
+.card:hover::after{opacity:.09}
+
+.card-em{font-size:22px;display:block;margin-bottom:8px}
+.card-lbl{
+  font-size:.58rem;color:var(--tx3);
+  text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px;
+}
+.card-val{
+  font-family:'Syne',sans-serif;
+  font-size:2rem;font-weight:700;
+  color:var(--tx);line-height:1;
+}
+.card-unit{font-size:.85rem;font-weight:400;color:var(--tx3)}
+.card-status{font-size:.64rem;color:var(--tx3);margin-top:6px;min-height:16px}
+
+/* ── SVG Ring ── */
+.ring{
+  position:absolute;bottom:10px;right:10px;
+  width:46px;height:46px;
+}
+.ring svg{transform:rotate(-90deg)}
+.r-bg{fill:none;stroke:var(--c3);stroke-width:4.5}
+.r-fg{
+  fill:none;stroke-width:4.5;stroke-linecap:round;
+  stroke-dasharray:120;stroke-dashoffset:120;
+  transition:stroke-dashoffset 1s cubic-bezier(.4,0,.2,1);
+}
+.r-val{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:.5rem;font-weight:600;color:var(--tx2);
+}
+
+/* ── Tank strip ── */
+.tank-strip{display:flex;gap:4px;margin-top:10px}
+.tl{
+  height:5px;flex:1;border-radius:3px;
+  background:var(--c3);
+  transition:background .5s,box-shadow .5s;
+}
+.tl.t1.on{background:#ff4d6d;box-shadow:0 0 8px #ff4d6d88}
+.tl.t2.on{background:#ffbe3d;box-shadow:0 0 8px #ffbe3d88}
+.tl.t3.on{background:#4ade80;box-shadow:0 0 8px #4ade8088}
+.tl.t4.on{background:#00e5b4;box-shadow:0 0 8px #00e5b488}
+
+/* ═══════════════════════════ CHARTS ═══════════════════════════ */
+.charts{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:12px;margin-bottom:14px;
+}
+@media(max-width:560px){.charts{grid-template-columns:1fr}}
+
+.chart-card{
+  background:var(--c1);border:1px solid var(--bd);
+  border-radius:var(--r3);padding:16px;
+  animation:fadeUp .5s .25s ease both;
+}
+.chart-lbl{
+  font-size:.6rem;color:var(--tx3);
+  text-transform:uppercase;letter-spacing:.1em;
+  margin-bottom:12px;display:flex;align-items:center;gap:6px;
+}
+.chart-box{height:120px;min-height:120px;position:relative}
+
+/* ═══════════════════════════ SECTION ═══════════════════════════ */
+.sec{
+  background:var(--c1);border:1px solid var(--bd);
+  border-radius:var(--r3);padding:18px 16px;
+  margin-bottom:12px;
+  animation:fadeUp .5s .3s ease both;
+}
+.sec-hd{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:16px;
+}
+.sec-title{
+  font-size:.62rem;color:var(--tx3);
+  text-transform:uppercase;letter-spacing:.1em;font-weight:500;
+  display:flex;align-items:center;gap:7px;
+}
+
+/* ═══════════════════════════ RELAYS ═══════════════════════════ */
+.rgrid{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:10px;margin-bottom:14px;
+}
+@media(max-width:560px){.rgrid{grid-template-columns:repeat(2,1fr)}}
+
 .rbtn{
-  padding:12px 6px;border:1px solid var(--bd2);border-radius:10px;cursor:pointer;
-  font-size:.78rem;font-weight:600;transition:all .18s;width:100%;
-  display:flex;flex-direction:column;align-items:center;gap:4px;
-  background:var(--bg0);color:var(--tx2);
+  position:relative;overflow:hidden;
+  padding:16px 8px 14px;
+  border:1px solid var(--bd2);border-radius:var(--r2);
+  cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  background:var(--c2);color:var(--tx2);
+  transition:all .2s;font-family:inherit;
 }
-.rbtn-icon{font-size:18px}
-.rbtn.ron{background:#14532d;color:#bbf7d0;border-color:#22c55e}
-.rbtn.ron:hover{background:#166534}
-.rbtn.roff:hover{background:var(--bg2)}
-.rbtn:disabled{opacity:.5;cursor:not-allowed}
+/* ripple */
+.rbtn::after{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at 50% 120%,rgba(0,229,180,.12) 0%,transparent 60%);
+  opacity:0;transition:opacity .3s;
+}
+.rbtn:hover::after{opacity:1}
+.rbtn:active{transform:scale(.95)}
+.rbtn-em{font-size:22px}
+.rbtn-nm{font-size:.72rem;font-weight:500;color:inherit}
+.rbtn-st{
+  font-size:.58rem;font-weight:700;
+  padding:2px 8px;border-radius:20px;
+  background:var(--c3);color:var(--tx3);
+  letter-spacing:.05em;
+  transition:all .2s;
+}
+.rbtn.ron{
+  background:rgba(0,229,180,.06);
+  border-color:rgba(0,229,180,.35);
+  color:var(--teal);
+  box-shadow:0 0 24px rgba(0,229,180,.08),inset 0 0 24px rgba(0,229,180,.03);
+}
+.rbtn.ron .rbtn-st{
+  background:rgba(0,229,180,.12);color:var(--teal);
+}
+@keyframes sendPop{0%{transform:scale(1)}40%{transform:scale(.93)}100%{transform:scale(1)}}
+.rbtn.busy{animation:sendPop .35s ease;pointer-events:none;opacity:.7}
+
+/* ═══════════════════════════ BUTTONS ═══════════════════════════ */
 .btn-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .btn{
-  padding:9px 16px;border:1px solid var(--bd2);border-radius:9px;cursor:pointer;
-  font-weight:600;font-size:.78rem;transition:all .15s;
-  display:flex;align-items:center;gap:6px;background:var(--bg0);color:var(--tx);
+  display:inline-flex;align-items:center;gap:6px;
+  padding:9px 16px;border-radius:10px;
+  font-family:inherit;font-weight:600;font-size:.78rem;
+  border:1px solid var(--bd2);
+  background:var(--c2);color:var(--tx);
+  cursor:pointer;transition:all .18s;
 }
-.btn:hover{background:var(--bg2)}
-.btn-blue  {background:#0c4a6e;color:#bae6fd;border-color:#0ea5e9}
-.btn-blue:hover{background:#075985}
-.btn-red   {background:#450a0a;color:#fecaca;border-color:#ef4444}
-.btn-red:hover{background:#7f1d1d}
-.btn-amber {background:#451a03;color:#fde68a;border-color:#f59e0b}
-.btn-amber:hover{background:#78350f}
-.btn-green {background:#052e16;color:#bbf7d0;border-color:#22c55e}
-.btn-green:hover{background:#14532d}
-.btn-purple{background:#2e1065;color:#ddd6fe;border-color:#a78bfa}
-.btn-purple:hover{background:#4c1d95}
-.spacer{flex:1}
+.btn:hover{background:var(--c3)}
+.btn:active{transform:scale(.97)}
+.btn-teal  {background:rgba(0,229,180,.07);border-color:rgba(0,229,180,.25);color:var(--teal)}
+.btn-teal:hover{background:rgba(0,229,180,.14)}
+.btn-red   {background:rgba(255,77,109,.07);border-color:rgba(255,77,109,.25);color:var(--red)}
+.btn-red:hover{background:rgba(255,77,109,.14)}
+.btn-blue  {background:rgba(90,171,255,.07);border-color:rgba(90,171,255,.25);color:var(--blue)}
+.btn-blue:hover{background:rgba(90,171,255,.14)}
+.btn-amber {background:rgba(255,190,61,.07);border-color:rgba(255,190,61,.25);color:var(--amber)}
+.btn-amber:hover{background:rgba(255,190,61,.14)}
+.btn-violet{background:rgba(192,132,252,.07);border-color:rgba(192,132,252,.25);color:var(--violet)}
+.btn-violet:hover{background:rgba(192,132,252,.14)}
+.sp{flex:1}
+
+/* ─── inputs ─── */
 input[type=number],input[type=password],input[type=text]{
-  background:var(--bg0);border:1px solid var(--bd2);
-  color:var(--tx);padding:8px 11px;border-radius:9px;
-  font-size:.78rem;outline:none;transition:border-color .15s;
+  background:var(--c2);border:1px solid var(--bd2);
+  color:var(--tx);padding:9px 12px;border-radius:10px;
+  font-size:.78rem;font-family:inherit;outline:none;
+  transition:border-color .2s,box-shadow .2s;
 }
-input:focus{border-color:var(--blue)}
+input:focus{border-color:rgba(0,229,180,.4);box-shadow:0 0 0 3px rgba(0,229,180,.06)}
+input[type=file]{color:var(--tx2);font-size:.74rem;cursor:pointer}
+
+/* ─── ctrl badge ─── */
+.cbadge{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:.62rem;padding:3px 9px;border-radius:20px;
+  background:var(--c2);border:1px solid var(--bd);color:var(--tx3);
+  transition:all .3s;
+}
+.cbadge.mqtt{background:rgba(0,229,180,.07);border-color:rgba(0,229,180,.2);color:var(--teal)}
+.cbadge.http{background:rgba(90,171,255,.07);border-color:rgba(90,171,255,.2);color:var(--blue)}
+.cbadge.fail{background:rgba(255,77,109,.07);border-color:rgba(255,77,109,.2);color:var(--red)}
+
+/* ─── OTA progress ─── */
+.prog-wrap{height:3px;background:var(--c3);border-radius:2px;margin-top:10px;overflow:hidden;display:none}
+.prog-fill{
+  height:100%;width:0%;border-radius:2px;
+  background:linear-gradient(90deg,var(--teal),var(--blue));
+  transition:width .3s;
+}
+#ota-msg{margin-top:8px;font-size:.72rem;color:var(--tx3);min-height:18px}
+
+/* ─── log ─── */
 .log{
-  background:var(--bg0);border-radius:8px;padding:10px 12px;
-  font-family:'SF Mono',monospace;font-size:.68rem;color:var(--tx3);
-  height:110px;overflow-y:auto;border:1px solid var(--bd);line-height:1.7;
+  background:var(--c0);border:1px solid var(--bd);border-radius:10px;
+  padding:10px 12px;font-family:'SF Mono',monospace;
+  font-size:.64rem;color:var(--tx3);
+  height:96px;overflow-y:auto;line-height:1.85;
+  scrollbar-width:thin;scrollbar-color:var(--c3) transparent;
 }
-.log .ok  {color:var(--green)}
+.log::-webkit-scrollbar{width:3px}
+.log::-webkit-scrollbar-thumb{background:var(--c3);border-radius:2px}
+.log .ok  {color:var(--teal)}
 .log .err {color:var(--red)}
 .log .warn{color:var(--amber)}
 .log .info{color:var(--blue)}
 .log .ts  {color:var(--tx3)}
-.alert{
-  background:#450a0a;border:1px solid #ef4444;border-radius:10px;
-  padding:10px 14px;font-size:.78rem;color:#fca5a5;
-  display:none;margin-bottom:12px;align-items:center;gap:8px;
+
+/* ─── cfg grid ─── */
+.cfg-g{display:grid;gap:8px}
+.cfg-r{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cfg-l{font-size:.72rem;color:var(--tx3);min-width:50px}
+
+/* responsive */
+@media(max-width:380px){
+  .brand-name{font-size:.78rem}
+  .pills .pill:nth-child(2) span:last-child{display:none}
+  main{padding:12px 10px 32px}
 }
-.alert.show{display:flex}
-#ota-msg{margin-top:8px;font-size:.74rem;color:var(--tx3);min-height:18px}
-.stats-row{
-  display:flex;gap:8px;flex-wrap:wrap;font-size:.68rem;color:var(--tx3);
-  margin-bottom:12px;align-items:center;
+@media(min-width:900px){
+  main{padding:28px 28px 56px}
 }
-.stats-row b{color:var(--tx2)}
-.divider{width:1px;height:12px;background:var(--bd2)}
-/* connection mode badge */
-.mode-badge{
-  display:inline-flex;align-items:center;gap:4px;
-  font-size:.65rem;padding:2px 7px;border-radius:10px;
-  background:var(--bg2);border:1px solid var(--bd2);color:var(--tx3);
-}
-.mode-badge.mqtt{background:#052e16;border-color:#22c55e;color:#86efac}
-.mode-badge.http{background:#0c4a6e;border-color:#0ea5e9;color:#7dd3fc}
-.mode-badge.fail{background:#450a0a;border-color:#ef4444;color:#fca5a5}
-@media(max-width:380px){.cards{grid-template-columns:repeat(2,1fr)}.pill .pill-txt{display:none}}
 </style>
 </head>
 <body>
 
-<!-- Header -->
-<div class="header">
-  <div class="header-left">
-    <div class="logo">🌿</div>
+<!-- BG -->
+<canvas id="particles"></canvas>
+<div class="bg-mesh"></div>
+<div class="bg-scan"></div>
+
+<!-- ══ SPLASH ══════════════════════════════════ -->
+<div id="splash">
+  <div class="splash-logo">
+    <svg width="44" height="44" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="20" cy="10" r="5" fill="#ffbe3d" opacity=".95"/>
+      <line x1="20" y1="2" x2="20" y2="0" stroke="#ffbe3d" stroke-width="2" stroke-linecap="round"/>
+      <line x1="28" y1="5" x2="30" y2="3" stroke="#ffbe3d" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="12" y1="5" x2="10" y2="3" stroke="#ffbe3d" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="30" y1="10" x2="32" y2="10" stroke="#ffbe3d" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="8" y1="10" x2="6" y2="10" stroke="#ffbe3d" stroke-width="1.5" stroke-linecap="round"/>
+      <rect x="2" y="30" width="36" height="10" rx="2" fill="#00b890" opacity=".55"/>
+      <line x1="20" y1="30" x2="20" y2="17" stroke="#00e5b4" stroke-width="2.5" stroke-linecap="round"/>
+      <ellipse cx="13" cy="23" rx="8" ry="3.5" fill="#00e5b4" opacity=".9" transform="rotate(-30 13 23)"/>
+      <ellipse cx="27" cy="21" rx="8" ry="3.5" fill="#4ade80" opacity=".85" transform="rotate(30 27 21)"/>
+      <path d="M34 22 Q36 26 34 28 Q32 26 34 22Z" fill="#5aabff" opacity=".9"/>
+    </svg>
+  </div>
+  <div class="splash-title">SMART FARM</div>
+  <div class="splash-sub">IoT Dashboard · Loading</div>
+  <div class="splash-bar-wrap"><div class="splash-bar"></div></div>
+</div>
+
+<div class="wrap">
+
+<!-- ══ HEADER ══════════════════════════════════ -->
+<header class="header">
+  <div class="brand">
+    <div class="brand-icon" id="brand-svg">
+    <svg width="22" height="22" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Sun -->
+      <circle cx="20" cy="10" r="5" fill="#ffbe3d" opacity=".9"/>
+      <line x1="20" y1="2" x2="20" y2="0" stroke="#ffbe3d" stroke-width="2" stroke-linecap="round"/>
+      <line x1="28" y1="5" x2="30" y2="3" stroke="#ffbe3d" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="12" y1="5" x2="10" y2="3" stroke="#ffbe3d" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="30" y1="10" x2="32" y2="10" stroke="#ffbe3d" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="8" y1="10" x2="6" y2="10" stroke="#ffbe3d" stroke-width="1.5" stroke-linecap="round"/>
+      <!-- Ground -->
+      <rect x="2" y="30" width="36" height="10" rx="2" fill="#00b890" opacity=".5"/>
+      <!-- Plant stem -->
+      <line x1="20" y1="30" x2="20" y2="18" stroke="#00e5b4" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- Leaves -->
+      <ellipse cx="14" cy="23" rx="7" ry="3.5" fill="#00e5b4" opacity=".9" transform="rotate(-30 14 23)"/>
+      <ellipse cx="26" cy="21" rx="7" ry="3.5" fill="#4ade80" opacity=".85" transform="rotate(30 26 21)"/>
+      <!-- Water drop -->
+      <path d="M34 22 Q36 26 34 28 Q32 26 34 22Z" fill="#5aabff" opacity=".8"/>
+    </svg>
+  </div>
     <div>
-      <h1>Smart Farm IoT</h1>
-      <div class="header-sub" id="hdr-sub">Initializing...</div>
+      <div class="brand-name">SMART FARM</div>
+      <div class="brand-sub" id="hdr-sub">Initializing...</div>
     </div>
   </div>
   <div class="pills">
-    <div class="pill">
-      <div class="dot" id="web-dot"></div>
-      <span class="pill-txt" id="web-txt">local</span>
+    <div class="pill" id="pill-web">
+      <div class="dot" id="dot-web"></div>
+      <span id="txt-web">local</span>
     </div>
-    <div class="pill">
-      <div class="dot" id="mqtt-dot"></div>
-      <span class="pill-txt" id="mqtt-txt">cloud</span>
+    <div class="pill" id="pill-mqtt">
+      <div class="dot" id="dot-mqtt"></div>
+      <span id="txt-mqtt">cloud</span>
     </div>
   </div>
-</div>
+</header>
 
 <main>
 
   <!-- Alert -->
-  <div class="alert" id="alert-banner">
-    <span id="alert-icon">⚠️</span>
-    <span id="alert-msg">--</span>
+  <div class="alert" id="alert-ban">
+    <span id="alert-ico">⚠️</span><span id="alert-msg"></span>
   </div>
 
-  <!-- Stats row -->
-  <div class="stats-row">
-    <span>IP: <b id="s-ip">--</b></span>
-    <div class="divider"></div>
-    <span>Updated: <b id="s-time">--</b></span>
-    <div class="divider"></div>
-    <span>RAM: <b id="s-ram">--</b></span>
-    <div class="divider"></div>
-    <span>Control: <span class="mode-badge" id="ctrl-mode">--</span></span>
+  <!-- Network bar -->
+  <div class="net-bar">
+    <div class="net-chip sta">
+      <span class="nc-lbl">STA</span>
+      <span class="nc-val" id="n-sta">--</span>
+      <span class="nc-tag">Router</span>
+    </div>
+    <div class="net-chip ap">
+      <span class="nc-lbl">AP</span>
+      <span class="nc-val" id="n-ap">192.168.4.1</span>
+      <span class="nc-tag">SmartFarm</span>
+    </div>
+    <div class="net-chip" style="margin-left:auto">
+      <span class="nc-lbl">RAM</span>
+      <span class="nc-val" id="s-ram">--</span>
+    </div>
+    <div class="net-chip">
+      <span class="nc-lbl">At</span>
+      <span class="nc-val" id="s-time">--</span>
+    </div>
   </div>
 
-  <!-- Sensor Cards -->
+  <!-- ══ CARDS ══ -->
   <div class="cards">
-    <div class="card">
-      <div class="card-accent" style="background:linear-gradient(90deg,#f59e0b,#ef4444)"></div>
-      <span class="card-icon">🌡️</span>
+    <!-- Temp -->
+    <div class="card ct">
+      <span class="card-em">🌡️</span>
       <div class="card-lbl">Temperature</div>
       <div class="card-val" id="vt">--<span class="card-unit">°C</span></div>
       <div class="card-status" id="st">--</div>
-      <div class="bar"><div class="bar-fill" id="bt" style="width:0%;background:#f59e0b"></div></div>
+      <div class="ring" id="rw-t">
+        <svg viewBox="0 0 46 46" width="46" height="46">
+          <circle class="r-bg" cx="23" cy="23" r="19"/>
+          <circle class="r-fg" id="rf-t" cx="23" cy="23" r="19" stroke="#ffbe3d"/>
+        </svg>
+        <div class="r-val" id="rv-t">--%</div>
+      </div>
     </div>
-    <div class="card">
-      <div class="card-accent" style="background:linear-gradient(90deg,#38bdf8,#6366f1)"></div>
-      <span class="card-icon">💧</span>
-      <div class="card-lbl">Air Humidity</div>
+    <!-- Humidity -->
+    <div class="card ch">
+      <span class="card-em">💧</span>
+      <div class="card-lbl">Humidity</div>
       <div class="card-val" id="vh">--<span class="card-unit">%</span></div>
       <div class="card-status" id="sh">--</div>
-      <div class="bar"><div class="bar-fill" id="bh" style="width:0%;background:#38bdf8"></div></div>
+      <div class="ring">
+        <svg viewBox="0 0 46 46" width="46" height="46">
+          <circle class="r-bg" cx="23" cy="23" r="19"/>
+          <circle class="r-fg" id="rf-h" cx="23" cy="23" r="19" stroke="#5aabff"/>
+        </svg>
+        <div class="r-val" id="rv-h">--%</div>
+      </div>
     </div>
-    <div class="card">
-      <div class="card-accent" style="background:linear-gradient(90deg,#22c55e,#84cc16)"></div>
-      <span class="card-icon">🌱</span>
+    <!-- Soil -->
+    <div class="card cs">
+      <span class="card-em">🌱</span>
       <div class="card-lbl">Soil Moisture</div>
       <div class="card-val" id="vs">--<span class="card-unit">%</span></div>
       <div class="card-status" id="ss">--</div>
-      <div class="bar"><div class="bar-fill" id="bs" style="width:0%;background:#22c55e"></div></div>
+      <div class="ring">
+        <svg viewBox="0 0 46 46" width="46" height="46">
+          <circle class="r-bg" cx="23" cy="23" r="19"/>
+          <circle class="r-fg" id="rf-s" cx="23" cy="23" r="19" stroke="#4ade80"/>
+        </svg>
+        <div class="r-val" id="rv-s">--%</div>
+      </div>
     </div>
-    <div class="card">
-      <div class="card-accent" style="background:linear-gradient(90deg,#06b6d4,#3b82f6)"></div>
-      <span class="card-icon">🪣</span>
+    <!-- Tank -->
+    <div class="card ck">
+      <span class="card-em">🪣</span>
       <div class="card-lbl">Tank Level</div>
       <div class="card-val" id="vk">--<span class="card-unit">%</span></div>
-      <div class="card-status" id="sk">-- cm</div>
-      <div class="tank-leds">
-        <div class="tled" id="tl1"></div>
-        <div class="tled" id="tl2"></div>
-        <div class="tled" id="tl3"></div>
-        <div class="tled" id="tl4"></div>
-        <span style="font-size:.65rem;color:var(--tx3);margin-left:2px">level</span>
+      <div class="card-status" id="sk">--</div>
+      <div class="ring">
+        <svg viewBox="0 0 46 46" width="46" height="46">
+          <circle class="r-bg" cx="23" cy="23" r="19"/>
+          <circle class="r-fg" id="rf-k" cx="23" cy="23" r="19" stroke="#00e5b4"/>
+        </svg>
+        <div class="r-val" id="rv-k">--%</div>
+      </div>
+      <div class="tank-strip">
+        <div class="tl t1" id="tl1"></div>
+        <div class="tl t2" id="tl2"></div>
+        <div class="tl t3" id="tl3"></div>
+        <div class="tl t4" id="tl4"></div>
       </div>
     </div>
   </div>
 
-  <!-- Charts -->
+  <!-- ══ CHARTS ══ -->
   <div class="charts">
-    <div class="chart-wrap">
-      <div class="chart-lbl"><span>📈</span> Temperature history</div>
-      <div class="chart-box"><canvas id="chart-temp"></canvas></div>
+    <div class="chart-card">
+      <div class="chart-lbl">📈 Temperature history</div>
+      <div class="chart-box"><canvas id="ct-temp"></canvas></div>
     </div>
-    <div class="chart-wrap">
-      <div class="chart-lbl"><span>🌱</span> Soil moisture history</div>
-      <div class="chart-box"><canvas id="chart-soil"></canvas></div>
+    <div class="chart-card">
+      <div class="chart-lbl">🌱 Soil history</div>
+      <div class="chart-box"><canvas id="ct-soil"></canvas></div>
     </div>
   </div>
 
-  <!-- Relay Control -->
+  <!-- ══ RELAY CONTROL ══ -->
   <div class="sec">
-    <div class="sec-hdr">
-      <div class="sec-title"><span class="sec-icon">⚡</span> Relay Control</div>
-      <span id="ctrl-via" style="font-size:.65rem;color:var(--tx3)"></span>
+    <div class="sec-hd">
+      <div class="sec-title">⚡ Relay Control</div>
+      <span class="cbadge" id="cbadge">offline</span>
     </div>
-    <div class="relay-grid">
+    <div class="rgrid">
       <button class="rbtn roff" id="r1" onclick="tog(1)">
-        <span class="rbtn-icon">💧</span>
-        <span id="r1-txt">Pump — OFF</span>
+        <span class="rbtn-em">💧</span>
+        <span class="rbtn-nm">Pump</span>
+        <span class="rbtn-st" id="rs1">OFF</span>
       </button>
       <button class="rbtn roff" id="r2" onclick="tog(2)">
-        <span class="rbtn-icon">🔌</span>
-        <span id="r2-txt">Relay 2 — OFF</span>
+        <span class="rbtn-em">🔌</span>
+        <span class="rbtn-nm">Relay 2</span>
+        <span class="rbtn-st" id="rs2">OFF</span>
       </button>
       <button class="rbtn roff" id="r3" onclick="tog(3)">
-        <span class="rbtn-icon">🔌</span>
-        <span id="r3-txt">Relay 3 — OFF</span>
+        <span class="rbtn-em">🔌</span>
+        <span class="rbtn-nm">Relay 3</span>
+        <span class="rbtn-st" id="rs3">OFF</span>
       </button>
       <button class="rbtn roff" id="r4" onclick="tog(4)">
-        <span class="rbtn-icon">💡</span>
-        <span id="r4-txt">Lamp — OFF</span>
+        <span class="rbtn-em">💡</span>
+        <span class="rbtn-nm">Lamp</span>
+        <span class="rbtn-st" id="rs4">OFF</span>
       </button>
     </div>
     <div class="btn-row">
-      <button class="btn btn-red"   onclick="allOff()">🚫 All OFF</button>
-      <button class="btn btn-green" onclick="load()">🔄 Refresh</button>
+      <button class="btn btn-red"  onclick="allOff()">🚫 All OFF</button>
+      <button class="btn btn-teal" onclick="load()">🔄 Refresh</button>
     </div>
   </div>
 
-  <!-- System Control -->
+  <!-- ══ SYSTEM ══ -->
   <div class="sec">
-    <div class="sec-hdr">
-      <div class="sec-title"><span class="sec-icon">⚙️</span> System Control</div>
-    </div>
-    <div class="btn-row" style="margin-bottom:12px">
-      <input type="number" id="ssec" value="300" min="10" max="3600" style="width:72px">
-      <span style="font-size:.75rem;color:var(--tx3)">sec</span>
+    <div class="sec-hd"><div class="sec-title">⚙️ System</div></div>
+    <div class="btn-row">
+      <input type="number" id="ssec" value="300" min="10" max="3600" style="width:76px">
+      <span style="font-size:.72rem;color:var(--tx3)">sec</span>
       <button class="btn btn-amber" onclick="goSleep()">😴 Sleep</button>
-      <div class="divider"></div>
-      <button class="btn btn-purple" onclick="doReset()">🔁 Reset ESP32</button>
-      <div class="spacer"></div>
-      <span style="font-size:.7rem;color:var(--tx3)">Auto refresh: 15s</span>
+      <div style="width:1px;height:18px;background:var(--bd2)"></div>
+      <button class="btn btn-violet" onclick="doReset()">🔁 Reset</button>
+      <div class="sp"></div>
+      <span style="font-size:.62rem;color:var(--tx3)">auto:15s</span>
     </div>
   </div>
 
-  <!-- OTA Upload -->
+  <!-- ══ OTA ══ -->
   <div class="sec">
-    <div class="sec-hdr">
-      <div class="sec-title"><span class="sec-icon">📦</span> OTA File Upload</div>
-    </div>
+    <div class="sec-hd"><div class="sec-title">📦 OTA Upload</div></div>
     <div class="btn-row" style="flex-wrap:wrap;gap:8px">
-      <input type="password" id="opwd" placeholder="🔑 OTA password" style="width:140px">
+      <input type="password" id="opwd" placeholder="🔑 password" style="width:130px">
       <input type="file" id="ofile" accept=".py,.html">
       <button class="btn btn-blue" onclick="doOTA()">⬆️ Upload</button>
     </div>
+    <div class="prog-wrap" id="pw"><div class="prog-fill" id="pf"></div></div>
     <div id="ota-msg"></div>
   </div>
 
-  <!-- MQTT Cloud Config -->
+  <!-- ══ MQTT CONFIG ══ -->
   <div class="sec">
-    <div class="sec-hdr">
-      <div class="sec-title"><span class="sec-icon">📡</span> MQTT Cloud Config</div>
-    </div>
-    <div style="display:grid;gap:8px">
-      <div class="btn-row">
-        <span style="font-size:.75rem;color:var(--tx3);min-width:60px">Broker</span>
-        <input type="text" id="cfg-host"
-               placeholder="xxxxxxxx.s1.eu.hivemq.cloud" style="flex:1">
+    <div class="sec-hd"><div class="sec-title">📡 MQTT Cloud</div></div>
+    <div class="cfg-g">
+      <div class="cfg-r">
+        <span class="cfg-l">Broker</span>
+        <input type="text" id="cfg-host" placeholder="xxx.hivemq.cloud" style="flex:1;min-width:180px">
       </div>
-      <div class="btn-row">
-        <span style="font-size:.75rem;color:var(--tx3);min-width:60px">User</span>
-        <input type="text"     id="cfg-user" placeholder="username" style="flex:1">
-        <span style="font-size:.75rem;color:var(--tx3)">Pass</span>
+      <div class="cfg-r">
+        <span class="cfg-l">User</span>
+        <input type="text" id="cfg-user" placeholder="username" style="flex:1">
+        <span class="cfg-l" style="min-width:36px">Pass</span>
         <input type="password" id="cfg-pass" placeholder="password" style="flex:1">
       </div>
-      <button class="btn btn-blue" onclick="mqttReconnect()" style="align-self:start">
-        🔗 Connect Cloud
-      </button>
+      <button class="btn btn-teal" onclick="mqttReconnect()">🔗 Connect</button>
     </div>
   </div>
 
-  <!-- Event Log -->
+  <!-- ══ LOG ══ -->
   <div class="sec">
-    <div class="sec-hdr">
-      <div class="sec-title"><span class="sec-icon">📋</span> Event Log</div>
-      <button class="btn" onclick="clearLog()" style="padding:4px 10px;font-size:.68rem">
-        🗑️ Clear
-      </button>
+    <div class="sec-hd">
+      <div class="sec-title">📋 Event Log</div>
+      <button class="btn" onclick="clearLog()" style="padding:5px 10px;font-size:.64rem">🗑️ Clear</button>
     </div>
     <div class="log" id="log"></div>
   </div>
 
 </main>
+</div><!-- wrap -->
 
 <script>
-// ══════════════════════════════════════════════
-// CONFIG — HiveMQ Cloud (يتغير من واجهة الـ UI)
-// ══════════════════════════════════════════════
-let MQTT_HOST = "c90f783efca941e18bc649fcd3037ee7.s1.eu.hivemq.cloud";
-let MQTT_PORT = 8884;
-let MQTT_USER = "M.M.K";
-let MQTT_PASS = "M0102333d";
+// ════ CONFIG ════
+let MQTT_HOST="c90f783efca941e18bc649fcd3037ee7.s1.eu.hivemq.cloud";
+let MQTT_PORT=8884,MQTT_USER="M.M.K",MQTT_PASS="M0102333d";
+const T_SENS="farm/sensors",T_STAT="farm/status",T_CMD="farm/cmd";
 
-const TOPIC_SENSORS = "farm/sensors";
-const TOPIC_STATUS  = "farm/status";
-const TOPIC_CMD     = "farm/cmd";
+// ════ STATE ════
+const rs={1:false,2:false,3:false,4:false};
+const rn={1:'Pump',2:'Relay 2',3:'Relay 3',4:'Lamp'};
+const ri={1:'💧',2:'🔌',3:'🔌',4:'💡'};
+let mqC=null;
+const hist={lb:[],t:[],s:[]};
+const MAXH=30;
 
-// ── State ──────────────────────────────────────
-const rs = {1:false,2:false,3:false,4:false};
-const rn = {1:'Pump',2:'Relay 2',3:'Relay 3',4:'Lamp'};
-const ri = {1:'💧',2:'🔌',3:'🔌',4:'💡'};
-const boot = Date.now();
-let mqttClient = null;
+// ════ SPLASH ════
+window.addEventListener('load',()=>{
+  setTimeout(()=>{
+    const sp=document.getElementById('splash');
+    sp.style.transition='opacity .6s ease';
+    sp.style.opacity='0';
+    setTimeout(()=>sp.remove(),650);
+  },2200);
+});
 
-// ── Charts ─────────────────────────────────────
-const hist = {labels:[],temp:[],soil:[]};
-const MAX  = 24;
-
-// ══════════════════════════════════════════════
-// LOG
-// ══════════════════════════════════════════════
-function lg(msg, type='info'){
-  const d = document.getElementById('log');
-  const t = new Date().toLocaleTimeString();
-  d.innerHTML =
-    `<span class="ts">[${t}]</span> <span class="${type}">${msg}</span>\n`
-    + d.innerHTML;
+// ════ LOG ════
+function lg(m,t='info'){
+  const d=document.getElementById('log');
+  const ts=new Date().toLocaleTimeString();
+  d.innerHTML=`<span class="ts">[${ts}]</span> <span class="${t}">${m}</span>\n`+d.innerHTML;
 }
-function clearLog(){ document.getElementById('log').innerHTML = ''; }
+function clearLog(){document.getElementById('log').innerHTML=''}
 
-// ══════════════════════════════════════════════
-// ALERT
-// ══════════════════════════════════════════════
-function showAlert(msg, icon='⚠️'){
-  const b = document.getElementById('alert-banner');
-  document.getElementById('alert-msg').textContent  = msg;
-  document.getElementById('alert-icon').textContent = icon;
+// ════ ALERT ════
+function showAlert(m,i='⚠️'){
+  const b=document.getElementById('alert-ban');
+  document.getElementById('alert-msg').textContent=m;
+  document.getElementById('alert-ico').textContent=i;
   b.classList.add('show');
-  setTimeout(() => b.classList.remove('show'), 6000);
+  setTimeout(()=>b.classList.remove('show'),6000);
 }
 
-// ══════════════════════════════════════════════
-// CHARTS
-// ══════════════════════════════════════════════
-const chartCfg = (label, color, data) => ({
+// ════ RING ════
+const CIRC=2*Math.PI*19;
+function setRing(fgId,valId,v,max,color){
+  const pct=v!=null?Math.min(v/max,1):0;
+  const el=document.getElementById(fgId);
+  const vl=document.getElementById(valId);
+  if(el){
+    if(color)el.setAttribute('stroke',color);
+    el.style.strokeDashoffset=CIRC*(1-pct);
+  }
+  if(vl)vl.textContent=v!=null?Math.round(pct*100)+'%':'--%';
+}
+
+// ════ TANK LEDs ════
+function setTank(pct){
+  [{id:'tl1',t:25},{id:'tl2',t:50},{id:'tl3',t:75},{id:'tl4',t:100}]
+  .forEach(l=>{
+    const el=document.getElementById(l.id);
+    if(!el)return;
+    if(pct!=null&&pct>=l.t)el.classList.add('on');
+    else el.classList.remove('on');
+  });
+}
+
+// ════ CHARTS ════
+const baseCfg=(label,color,data)=>({
   type:'line',
-  data:{
-    labels:hist.labels,
-    datasets:[{
-      label, data,
-      borderColor:color, borderWidth:1.5,
-      pointRadius:2, pointBackgroundColor:color,
-      tension:0.4, fill:true, backgroundColor:color+'18',
-    }]
-  },
+  data:{labels:hist.lb,datasets:[{
+    label,data,
+    borderColor:color,borderWidth:1.5,
+    pointRadius:3,pointBackgroundColor:color,
+    pointBorderColor:'transparent',
+    tension:.42,fill:true,backgroundColor:color+'12',
+    spanGaps:true,   // ✅ draw line even with gaps
+  }]},
   options:{
-    responsive:true, maintainAspectRatio:false,
-    animation:{duration:300},
+    responsive:true,maintainAspectRatio:false,
+    animation:{duration:350},
     plugins:{legend:{display:false},tooltip:{
-      backgroundColor:'#0f172a',borderColor:'#1e293b',borderWidth:1,
-      titleColor:'#94a3b8',bodyColor:'#e2e8f0',padding:8,
+      backgroundColor:'#071525',
+      borderColor:'rgba(255,255,255,.07)',borderWidth:1,
+      titleColor:'#7a9bbf',bodyColor:'#ddeeff',padding:10,cornerRadius:8,
     }},
     scales:{
-      x:{ticks:{color:'#334155',font:{size:9},maxRotation:0},grid:{color:'#0f172a'}},
-      y:{ticks:{color:'#334155',font:{size:9}},grid:{color:'#1e293b'}},
+      x:{ticks:{color:'#364f6a',font:{size:9},maxRotation:0},grid:{color:'rgba(255,255,255,.025)'}},
+      y:{ticks:{color:'#364f6a',font:{size:9}},grid:{color:'rgba(255,255,255,.03)'}},
     }
   }
 });
+const chT=new Chart(document.getElementById('ct-temp'),baseCfg('°C','#ffbe3d',hist.t));
+const chS=new Chart(document.getElementById('ct-soil'),baseCfg('%','#4ade80',hist.s));
 
-const chartTemp = new Chart(document.getElementById('chart-temp'), chartCfg('Temp°C','#f59e0b',hist.temp));
-const chartSoil = new Chart(document.getElementById('chart-soil'), chartCfg('Soil%','#22c55e',hist.soil));
-
-function pushHist(temp, soil){
-  const t = new Date().toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});
-  hist.labels.push(t); hist.temp.push(temp); hist.soil.push(soil);
-  if(hist.labels.length > MAX){ hist.labels.shift();hist.temp.shift();hist.soil.shift(); }
-  chartTemp.update('none'); chartSoil.update('none');
+function pushHist(t,s){
+  const lbl=new Date().toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});
+  hist.lb.push(lbl);
+  hist.t.push(Number(t));
+  hist.s.push(Number(s));
+  if(hist.lb.length>MAXH){hist.lb.shift();hist.t.shift();hist.s.shift();}
+  // ✅ FIX: full data replacement forces Chart.js to redraw correctly
+  chT.data.labels = [...hist.lb];
+  chT.data.datasets[0].data = [...hist.t];
+  chS.data.labels = [...hist.lb];
+  chS.data.datasets[0].data = [...hist.s];
+  chT.update();
+  chS.update();
 }
 
-// ══════════════════════════════════════════════
-// UPDATE UI
-// ══════════════════════════════════════════════
-function updateUI(d){
-  function sv(id, val, unit){
-    document.getElementById(id).innerHTML =
-      val != null ? val+'<span class="card-unit">'+unit+'</span>' : '--';
+// ════ UPDATE UI ════
+function ui(d){
+  const T=d.temperature,H=d.humidity,S=d.soil_pct,K=d.tank_pct;
+
+  function sv(id,v,u){
+    document.getElementById(id).innerHTML=v!=null?v+'<span class="card-unit">'+u+'</span>':'--';
   }
-  const T = d.temperature, H = d.humidity, S = d.soil_pct, K = d.tank_pct;
+  sv('vt',T,'°C');sv('vh',H,'%');sv('vs',S,'%');sv('vk',K,'%');
 
-  sv('vt', T, '°C');
-  sv('vh', H, '%');
-  sv('vs', S, '%');
-  sv('vk', K, '%');
-
-  document.getElementById('st').textContent =
+  document.getElementById('st').textContent=
     T!=null?(T>38?'🔥 Very hot':T>30?'🌡 Hot':T>20?'✅ Normal':'❄️ Cool'):'--';
-  document.getElementById('sh').textContent =
+  document.getElementById('sh').textContent=
     H!=null?(H>80?'💦 Very humid':H>50?'✅ Normal':'🌵 Dry'):'--';
-  document.getElementById('ss').textContent =
-    S!=null?(S<30?'🚨 Dry — irrigate!':S>70?'💦 Wet — OK':'✅ Good'):'--';
-  document.getElementById('sk').textContent =
+  document.getElementById('ss').textContent=
+    S!=null?(S<30?'🚨 Needs water':S>70?'💦 Wet — OK':'✅ Good'):'--';
+  document.getElementById('sk').textContent=
     d.tank_dist!=null?d.tank_dist+'cm from sensor':'--';
 
-  function sb(id, val, max, color){
-    const el=document.getElementById(id);
-    if(el&&val!=null){
-      el.style.width=(Math.min(val/max,1)*100)+'%';
-      if(color) el.style.background=color;
-    }
-  }
-  sb('bt',T,50);
-  sb('bh',H,100);
-  sb('bs',S,100,S!=null?(S<30?'#ef4444':S>70?'#38bdf8':'#22c55e'):'#22c55e');
+  setRing('rf-t','rv-t',T,50,'#ffbe3d');
+  setRing('rf-h','rv-h',H,100,'#5aabff');
+  const sc=S!=null?(S<30?'#ff4d6d':S>70?'#5aabff':'#4ade80'):'#4ade80';
+  setRing('rf-s','rv-s',S,100,sc);
+  setRing('rf-k','rv-k',K,100,'#00e5b4');
+  setTank(K);
 
-  updateTankLEDs(K);
-
-  // ── relay state from ESP32 ──
   [1,2,3,4].forEach(n=>{
-    if(d['relay_'+n] !== undefined){ rs[n]=d['relay_'+n]; updBtn(n); }
+    if(d['relay_'+n]!==undefined){rs[n]=d['relay_'+n];updBtn(n);}
   });
 
-  document.getElementById('s-ip').textContent   = location.hostname;
-  document.getElementById('s-time').textContent = new Date().toLocaleTimeString();
-  if(d.free_ram)
-    document.getElementById('s-ram').textContent = Math.round(d.free_ram/1024)+'KB';
+  if(d.sta_ip)document.getElementById('n-sta').textContent=d.sta_ip;
+  if(d.ap_ip) document.getElementById('n-ap').textContent=d.ap_ip;
+  document.getElementById('s-time').textContent=new Date().toLocaleTimeString();
+  if(d.free_ram)document.getElementById('s-ram').textContent=Math.round(d.free_ram/1024)+'KB';
 
-  document.getElementById('hdr-sub').textContent =
+  document.getElementById('hdr-sub').textContent=
     `T:${T??'--'}°C  H:${H??'--'}%  Soil:${S??'--'}%  Tank:${K??'--'}%`;
 
-  if(S!=null && S<30) showAlert('Soil is dry — auto irrigation may activate!','🌵');
-  if(K!=null && K<15) showAlert('Tank level critical — refill needed!','🚨');
+  if(S!=null&&S<30)showAlert('Soil dry — irrigation may activate','🌵');
+  if(K!=null&&K<15)showAlert('Tank critical — refill!','🚨');
+  // ✅ push chart data — use last known value if sensor temporarily null
+  {
+    const tVal = (T!=null) ? T : (hist.t.length>0 ? hist.t[hist.t.length-1] : null);
+    const sVal = (S!=null) ? S : (hist.s.length>0 ? hist.s[hist.s.length-1] : null);
+    if(tVal!=null && sVal!=null) pushHist(tVal, sVal);
+  }
 
-  if(T!=null && S!=null) pushHist(T,S);
+  document.getElementById('dot-web').className='dot live on';
+  document.getElementById('txt-web').textContent='local ✓';
+  document.getElementById('pill-web').className='pill ok';
 }
 
-// ══════════════════════════════════════════════
-// TANK LEDs
-// ══════════════════════════════════════════════
-function updateTankLEDs(pct){
-  [{id:'tl1',t:25,cls:'on-red'},{id:'tl2',t:50,cls:'on-amber'},
-   {id:'tl3',t:75,cls:'on-green'},{id:'tl4',t:100,cls:'on-bright'}]
-  .forEach(l=>{
-    const el=document.getElementById(l.id);
-    if(!el) return;
-    el.className='tled';
-    if(pct!=null && pct>=l.t) el.classList.add(l.cls);
-  });
-}
-
-// ══════════════════════════════════════════════
-// RELAY BUTTONS
-// ══════════════════════════════════════════════
+// ════ RELAY BUTTONS ════
 function updBtn(n){
-  const b  =document.getElementById('r'+n);
-  const txt=document.getElementById('r'+n+'-txt');
-  if(!b) return;
+  const b=document.getElementById('r'+n);
+  const s=document.getElementById('rs'+n);
+  if(!b)return;
   b.className='rbtn '+(rs[n]?'ron':'roff');
-  if(txt) txt.textContent=rn[n]+' — '+(rs[n]?'ON':'OFF');
+  if(s)s.textContent=rs[n]?'ON':'OFF';
 }
 
-// ══════════════════════════════════════════════
-// CONTROL — MQTT first, HTTP fallback
-// ══════════════════════════════════════════════
-function setCtrlMode(mode){
-  const el=document.getElementById('ctrl-mode');
-  const via=document.getElementById('ctrl-via');
-  if(mode==='mqtt'){
-    el.className='mode-badge mqtt'; el.textContent='☁️ MQTT';
-    via.textContent='sending via cloud';
-  } else if(mode==='http'){
-    el.className='mode-badge http'; el.textContent='🌐 HTTP';
-    via.textContent='sending via local network';
-  } else {
-    el.className='mode-badge fail'; el.textContent='❌ offline';
-    via.textContent='no connection';
-  }
+// ════ CTRL MODE ════
+function setMode(m){
+  const el=document.getElementById('cbadge');
+  if(m==='mqtt'){el.className='cbadge mqtt';el.textContent='☁️ MQTT';}
+  else if(m==='http'){el.className='cbadge http';el.textContent='🌐 HTTP';}
+  else{el.className='cbadge fail';el.textContent='❌ offline';}
 }
 
-function mqttSend(cmd){
-  if(mqttClient && mqttClient.connected){
-    mqttClient.publish(TOPIC_CMD, cmd);
-    lg('📤 MQTT → '+cmd,'info');
-    return true;
-  }
+// ════ SEND ════
+function mqSend(cmd){
+  if(mqC&&mqC.connected){mqC.publish(T_CMD,cmd);lg('📤 '+cmd,'info');return true;}
   return false;
 }
-
-async function httpRelay(num, state){
-  const ctrl=new AbortController();
-  const tid =setTimeout(()=>ctrl.abort(), 5000);
+async function httpRelay(num,state){
   try{
-    const res=await fetch('/api/relay',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({num, state}),
-      signal:ctrl.signal
+    const c=new AbortController();setTimeout(()=>c.abort(),5000);
+    const r=await fetch('/api/relay',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({num,state}),signal:c.signal
     });
-    clearTimeout(tid);
-    if(res.ok) return await res.json();
-    return null;
-  } catch(e){
-    clearTimeout(tid);
-    return null;
-  }
+    return r.ok?await r.json():null;
+  }catch{return null;}
 }
 
-// ── TOG: MQTT first → HTTP fallback ──
+// ════ TOG ════
 async function tog(n){
-  const s   = !rs[n];
-  const cmd = 'relay_'+n+'_'+(s?'on':'off');
-
-  // 1️⃣ MQTT — فوري عبر السحابة
-  if(mqttSend(cmd)){
-    rs[n]=s; updBtn(n);
-    setCtrlMode('mqtt');
-    lg(`${ri[n]} ${rn[n]} → ${s?'ON':'OFF'} ☁️`,'ok');
-    return;
+  const s=!rs[n],cmd='relay_'+n+'_'+(s?'on':'off');
+  const b=document.getElementById('r'+n);
+  if(b){b.classList.add('busy');}
+  try{
+    // ✅ على AP: HTTP مباشرة — مفيش إنترنت للـ MQTT
+    if(!isOnAP() && mqSend(cmd)){
+      rs[n]=s;updBtn(n);setMode('mqtt');
+      lg(`${ri[n]} ${rn[n]} → ${s?'ON':'OFF'} ☁️`,'ok');return;
+    }
+    const r=await httpRelay(n,s);
+    if(r&&r.ok){
+      rs[n]=r.state!==undefined?r.state:s;updBtn(n);
+      setMode('http');lg(`${ri[n]} ${rn[n]} → ${rs[n]?'ON':'OFF'} 🌐`,'ok');return;
+    }
+    setMode('fail');lg(`❌ ${rn[n]}: no connection`,'err');
+    showAlert('Cannot reach ESP32!','❌');
+  }finally{
+    setTimeout(()=>{if(b)b.classList.remove('busy');},400);
   }
-
-  // 2️⃣ HTTP — محلي
-  lg('⚡ MQTT offline — trying HTTP...','warn');
-  const res=await httpRelay(n, s);
-  if(res && res.ok){
-    const actual = res.state !== undefined ? res.state : s;
-    rs[n]=actual; updBtn(n);
-    setCtrlMode('http');
-    lg(`${ri[n]} ${rn[n]} → ${actual?'ON':'OFF'} 🌐`,'ok');
-    return;
-  }
-
-  // 3️⃣ كلاهما فشل
-  setCtrlMode('fail');
-  lg(`❌ ${rn[n]}: both MQTT and HTTP failed`,'err');
-  showAlert('No connection to ESP32!','❌');
 }
 
-// ── ALL OFF ──
 async function allOff(){
-  if(mqttSend('all_off')){
+  // ✅ AP: HTTP مباشرة
+  if(!isOnAP() && mqSend('all_off')){
     [1,2,3,4].forEach(n=>{rs[n]=false;updBtn(n);});
-    setCtrlMode('mqtt');
-    lg('🚫 All OFF ☁️ MQTT','warn');
-    return;
+    setMode('mqtt');lg('🚫 All OFF ☁️','warn');return;
   }
-  const res=await httpRelay(0, false);
-  if(res && res.ok){
-    [1,2,3,4].forEach(n=>{rs[n]=res['relay_'+n]||false;updBtn(n);});
-    setCtrlMode('http');
-    lg('🚫 All OFF 🌐 HTTP','warn');
-    return;
+  const r=await httpRelay(0,false);
+  if(r&&r.ok){
+    [1,2,3,4].forEach(n=>{rs[n]=r['relay_'+n]||false;updBtn(n);});
+    setMode('http');lg('🚫 All OFF 🌐','warn');return;
   }
-  setCtrlMode('fail');
-  lg('❌ All OFF failed','err');
+  setMode('fail');lg('❌ All OFF failed','err');
 }
 
-// ══════════════════════════════════════════════
-// HTTP — local fetch (data only)
-// ══════════════════════════════════════════════
+// ════ HTTP REFRESH ════
 async function load(){
   try{
-    const ctrl=new AbortController();
-    setTimeout(()=>ctrl.abort(),8000);
-    const d=await (await fetch('/api/data',{signal:ctrl.signal})).json();
-    updateUI(d);
-    document.getElementById('web-dot').className='dot live on';
-    document.getElementById('web-txt').textContent='local ✓';
-    lg('🔄 Refreshed (HTTP)','ok');
-  } catch(e){
-    document.getElementById('web-dot').className='dot warn';
-    document.getElementById('web-txt').textContent='local ✗';
-    lg('⚠️ Local offline — using cloud only','warn');
+    const c=new AbortController();setTimeout(()=>c.abort(),8000);
+    const d=await(await fetch('/api/data',{signal:c.signal})).json();
+    ui(d);lg('🔄 Refreshed','ok');
+  }catch(e){
+    document.getElementById('dot-web').className='dot warn';
+    document.getElementById('txt-web').textContent='local ✗';
+    document.getElementById('pill-web').className='pill err';
+    lg('⚠️ Local offline','warn');
   }
 }
 
-// ══════════════════════════════════════════════
-// SLEEP & RESET
-// ══════════════════════════════════════════════
+// ════ SLEEP & RESET ════
 async function goSleep(){
   const s=parseInt(document.getElementById('ssec').value)||300;
-  if(!confirm(`😴 Sleep for ${s} seconds?`)) return;
-
-  // ✅ FIX: send exact seconds via MQTT using pump_ style: sleep_N
-  // MQTT sends 'sleep_NNN' so ESP32 knows exact duration
-  if(mqttSend('sleep_'+s)){
-    lg(`😴 Sleep ${s}s sent ☁️ MQTT`,'warn');
-  } else {
+  if(!confirm(`😴 Sleep for ${s}s?`))return;
+  if(!isOnAP() && mqSend('sleep_'+s)){lg(`😴 Sleep ${s}s ☁️`,'warn');}
+  else{
     try{
-      const ctrl=new AbortController();
-      setTimeout(()=>ctrl.abort(),5000);
-      const res=await fetch('/api/sleep',{
-        method:'POST',
+      const c=new AbortController();setTimeout(()=>c.abort(),5000);
+      await fetch('/api/sleep',{method:'POST',
         headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({seconds:s}),
-        signal:ctrl.signal
-      });
-      if(res.ok) lg(`😴 Sleep ${s}s sent 🌐 HTTP`,'warn');
-    } catch(e){ lg('❌ Sleep failed','err'); return; }
+        body:JSON.stringify({seconds:s}),signal:c.signal});
+      lg(`😴 Sleep ${s}s 🌐`,'warn');
+    }catch{lg('❌ Sleep failed','err');return;}
   }
-  document.getElementById('web-dot').className='dot warn';
-  document.getElementById('web-txt').textContent='sleeping '+s+'s...';
+  document.getElementById('dot-web').className='dot warn';
+  document.getElementById('txt-web').textContent='sleeping '+s+'s';
 }
 
 async function doReset(){
-  if(!confirm('🔁 Restart the ESP32?')) return;
-
-  if(mqttSend('reset')){
-    lg('🔁 Reset sent ☁️ MQTT','warn');
-  } else {
+  if(!confirm('🔁 Restart ESP32?'))return;
+  if(!isOnAP() && mqSend('reset')){lg('🔁 Reset ☁️','warn');}
+  else{
     try{
-      const ctrl=new AbortController();
-      setTimeout(()=>ctrl.abort(),5000);
-      await fetch('/api/reset',{method:'POST',signal:ctrl.signal});
-      lg('🔁 Reset sent 🌐 HTTP','warn');
-    } catch(e){ lg('❌ Reset failed','err'); return; }
+      const c=new AbortController();setTimeout(()=>c.abort(),5000);
+      await fetch('/api/reset',{method:'POST',signal:c.signal});
+      lg('🔁 Reset 🌐','warn');
+    }catch{lg('❌ Reset failed','err');return;}
   }
-  document.getElementById('web-dot').className='dot warn';
-  document.getElementById('web-txt').textContent='restarting...';
+  document.getElementById('dot-web').className='dot warn';
+  document.getElementById('txt-web').textContent='restarting...';
 }
 
-// ══════════════════════════════════════════════
-// OTA
-// ══════════════════════════════════════════════
+// ════ OTA ════
 async function doOTA(){
-  const pwd  = document.getElementById('opwd').value;
-  const file = document.getElementById('ofile').files[0];
-  const msg  = document.getElementById('ota-msg');
-  if(!file){ alert('📁 Select a file first'); return; }
+  const pwd=document.getElementById('opwd').value;
+  const file=document.getElementById('ofile').files[0];
+  const msg=document.getElementById('ota-msg');
+  const pf=document.getElementById('pf');
+  const pw=document.getElementById('pw');
+  if(!file){alert('Select a file first');return;}
   msg.textContent='⏳ Uploading '+file.name+'...';
-  msg.style.color='#94a3b8';
+  msg.style.color='var(--tx3)';
+  pw.style.display='block';
+  let p=0;
+  const iv=setInterval(()=>{p=Math.min(p+Math.random()*15,85);pf.style.width=p+'%';},200);
   try{
     const buf=await file.arrayBuffer();
-    const r=await fetch('/ota',{
-      method:'POST',
-      headers:{
-        'X-OTA-Password':pwd,
-        'X-OTA-Filename':file.name,
-        'Content-Type':'application/octet-stream'
-      },
-      body:buf
-    });
+    const r=await fetch('/ota',{method:'POST',
+      headers:{'X-OTA-Password':pwd,'X-OTA-Filename':file.name,
+        'Content-Type':'application/octet-stream'},body:buf});
+    clearInterval(iv);pf.style.width='100%';
     const txt=await r.text();
     msg.textContent=(r.ok?'✅ ':'❌ ')+txt;
-    msg.style.color=r.ok?'#22c55e':'#ef4444';
-    lg('📦 OTA '+(r.ok?'OK':'FAIL')+': '+file.name, r.ok?'ok':'err');
-    if(r.ok && (file.name==='config.py'||file.name==='main.py'||file.name==='wifi_manager.py')){
-      msg.textContent += ' — ESP32 restarting...';
-    }
-  } catch(e){
-    msg.textContent='❌ '+e;
-    msg.style.color='#ef4444';
-    lg('📦 OTA error: '+e,'err');
+    msg.style.color=r.ok?'var(--teal)':'var(--red)';
+    lg('📦 '+(r.ok?'OK':'FAIL')+': '+file.name,r.ok?'ok':'err');
+    if(r.ok&&['config.py','main.py','wifi_manager.py','boot.py'].includes(file.name))
+      msg.textContent+=' — restarting...';
+    setTimeout(()=>{pw.style.display='none';pf.style.width='0%';},3000);
+  }catch(e){
+    clearInterval(iv);pw.style.display='none';
+    msg.textContent='❌ '+e;msg.style.color='var(--red)';
+    lg('📦 error: '+e,'err');
   }
 }
 
-// ══════════════════════════════════════════════
-// MQTT CLOUD
-// ══════════════════════════════════════════════
+// ════ MQTT ════
 function mqttConnect(){
-  const host=document.getElementById('cfg-host')?.value || MQTT_HOST;
-  const user=document.getElementById('cfg-user')?.value || MQTT_USER;
-  const pass=document.getElementById('cfg-pass')?.value || MQTT_PASS;
-
-  if(mqttClient){ mqttClient.end(true); mqttClient=null; }
-
-  const url=`wss://${host}:${MQTT_PORT}/mqtt`;
-  lg('📡 Connecting to '+host+'...','info');
-
-  mqttClient=mqtt.connect(url,{
-    username:user, password:pass,
-    clientId:'farm-dash-'+Math.random().toString(16).slice(2,8),
-    reconnectPeriod:5000,
-    connectTimeout:15000,
+  const host=document.getElementById('cfg-host')?.value||MQTT_HOST;
+  const user=document.getElementById('cfg-user')?.value||MQTT_USER;
+  const pass=document.getElementById('cfg-pass')?.value||MQTT_PASS;
+  if(mqC){mqC.end(true);mqC=null;}
+  lg('📡 Connecting MQTT...','info');
+  mqC=mqtt.connect(`wss://${host}:${MQTT_PORT}/mqtt`,{
+    username:user,password:pass,
+    clientId:'farm-'+Math.random().toString(16).slice(2,8),
+    reconnectPeriod:5000,connectTimeout:15000,
   });
-
-  mqttClient.on('connect',()=>{
-    document.getElementById('mqtt-dot').className='dot live on';
-    document.getElementById('mqtt-txt').textContent='cloud ✓';
-    setCtrlMode('mqtt');
-    lg('✅ MQTT cloud connected','ok');
-    mqttClient.subscribe([TOPIC_SENSORS, TOPIC_STATUS]);
+  mqC.on('connect',()=>{
+    document.getElementById('dot-mqtt').className='dot live on';
+    document.getElementById('txt-mqtt').textContent='cloud ✓';
+    document.getElementById('pill-mqtt').className='pill ok';
+    setMode('mqtt');lg('✅ MQTT connected','ok');
+    mqC.subscribe([T_SENS,T_STAT]);
   });
-
-  mqttClient.on('message',(topic,payload)=>{
-    const msg=payload.toString();
-    if(topic===TOPIC_STATUS){
-      const on=msg==='online';
-      document.getElementById('web-dot').className='dot '+(on?'live on':'warn');
-      document.getElementById('web-txt').textContent=on?'ESP32 online':'ESP32 offline';
-      lg('📟 ESP32: '+msg, on?'ok':'warn');
-      return;
+  mqC.on('message',(topic,payload)=>{
+    const m=payload.toString();
+    if(topic===T_STAT){
+      const on=m==='online';
+      document.getElementById('dot-web').className='dot '+(on?'live on':'warn');
+      document.getElementById('txt-web').textContent=on?'ESP32 ✓':'ESP32 offline';
+      document.getElementById('pill-web').className='pill '+(on?'ok':'err');
+      lg('📟 ESP32: '+m,on?'ok':'warn');return;
     }
-    if(topic===TOPIC_SENSORS){
-      try{
-        const d=JSON.parse(msg);
-        updateUI(d);
-        lg('📊 Cloud data received','info');
-      } catch(e){ lg('❌ Parse error: '+e,'err'); }
+    if(topic===T_SENS){
+      try{ui(JSON.parse(m));lg('📊 Cloud data','info');}
+      catch(e){lg('❌ Parse: '+e,'err');}
     }
   });
-
-  mqttClient.on('error',e=>{
-    document.getElementById('mqtt-dot').className='dot err';
-    document.getElementById('mqtt-txt').textContent='cloud ✗';
-    lg('❌ MQTT error: '+e,'err');
+  mqC.on('error',e=>{
+    document.getElementById('dot-mqtt').className='dot err';
+    document.getElementById('txt-mqtt').textContent='cloud ✗';
+    document.getElementById('pill-mqtt').className='pill err';
+    lg('❌ MQTT: '+e,'err');
   });
-
-  mqttClient.on('reconnect',()=>{
-    document.getElementById('mqtt-dot').className='dot warn';
-    document.getElementById('mqtt-txt').textContent='reconnecting';
-    lg('🔄 MQTT reconnecting...','warn');
+  mqC.on('reconnect',()=>{
+    document.getElementById('dot-mqtt').className='dot warn';
+    document.getElementById('txt-mqtt').textContent='reconnecting';
+    lg('🔄 reconnecting...','warn');
   });
-
-  mqttClient.on('close',()=>{
-    document.getElementById('mqtt-dot').className='dot err';
-    document.getElementById('mqtt-txt').textContent='cloud ✗';
-    if(mqttClient && !mqttClient.connected) setCtrlMode('http');
+  mqC.on('close',()=>{
+    document.getElementById('dot-mqtt').className='dot err';
+    document.getElementById('txt-mqtt').textContent='cloud ✗';
+    document.getElementById('pill-mqtt').className='pill err';
+    if(mqC&&!mqC.connected)setMode('http');
   });
 }
-
 function mqttReconnect(){
   MQTT_HOST=document.getElementById('cfg-host').value||MQTT_HOST;
   MQTT_USER=document.getElementById('cfg-user').value||MQTT_USER;
@@ -779,12 +1096,114 @@ function mqttReconnect(){
   mqttConnect();
 }
 
-// ══════════════════════════════════════════════
-// START
-// ══════════════════════════════════════════════
-load();
-mqttConnect();
-setInterval(load, 15000);
+
+// ════ PARTICLES ════
+(function(){
+  const cv=document.getElementById('particles');
+  if(!cv)return;
+  const ctx=cv.getContext('2d');
+  let W,H,pts=[];
+
+  function resize(){
+    W=cv.width=window.innerWidth;
+    H=cv.height=window.innerHeight;
+  }
+
+  function mkPt(){
+    return{
+      x:Math.random()*W,
+      y:Math.random()*H,
+      r:Math.random()*1.8+.4,
+      vx:(Math.random()-.5)*.18,
+      vy:-(Math.random()*.25+.08),
+      life:0,
+      maxLife:Math.random()*300+200,
+      color:Math.random()>.6?'0,229,180':Math.random()>.5?'90,171,255':'192,132,252',
+    };
+  }
+
+  resize();
+  window.addEventListener('resize',resize);
+  for(let i=0;i<55;i++){const p=mkPt();p.life=Math.random()*p.maxLife;pts.push(p);}
+
+  function frame(){
+    ctx.clearRect(0,0,W,H);
+    pts.forEach((p,i)=>{
+      p.life++;
+      if(p.life>p.maxLife){pts[i]=mkPt();return;}
+      const prog=p.life/p.maxLife;
+      const alpha=prog<.15?prog/.15:prog>.75?(1-prog)/.25:1;
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${p.color},${alpha*.55})`;
+      ctx.fill();
+      // glow
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.r*2.5,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${p.color},${alpha*.08})`;
+      ctx.fill();
+      p.x+=p.vx;p.y+=p.vy;
+    });
+    requestAnimationFrame(frame);
+  }
+  frame();
+})();
+
+// ════ AP MODE DETECTION ════
+// لو المستخدم على الـ AP network (192.168.4.x) — HTTP فقط بدون MQTT
+function isOnAP(){
+  const host = location.hostname;
+  return host === '192.168.4.1' ||
+         host.startsWith('192.168.4.');
+}
+
+// ════ SMART REFRESH — يجيب البيانات من HTTP دايماً ════
+// لما على AP: HTTP فقط (مفيش إنترنت)
+// لما على STA: HTTP + MQTT cloud
+async function smartRefresh(){
+  await load();  // HTTP local — شغال على STA وAP
+}
+
+// ════ START ════
+if(isOnAP()){
+  // ── AP Mode: HTTP only, no MQTT ──
+  document.getElementById('dot-mqtt').className='dot warn';
+  document.getElementById('txt-mqtt').textContent='AP mode';
+  document.getElementById('pill-mqtt').className='pill';
+  setMode('http');
+  lg('📡 AP mode — HTTP only','warn');
+  lg('✅ All features work via AP','ok');
+
+  // ✅ FIX: load immediately then repeat every 5s
+  // After first load, chart will have data and will show
+  // ✅ FIX: On AP, resize charts after DOM settles then load data
+  // Chart.js on AP sometimes renders at 0px before layout is done
+  function apStart(){
+    // Force chart canvas resize
+    chT.resize();
+    chS.resize();
+    // First load — gets data into charts
+    load().then(()=>{
+      // Second load after 4s — gives chart 2 points to draw a line
+      setTimeout(()=>load(), 4000);
+      // Third load after 8s — smooth line
+      setTimeout(()=>load(), 8000);
+    });
+  }
+  // Wait for full page paint before starting
+  if(document.readyState==='complete'){
+    setTimeout(apStart, 300);
+  } else {
+    window.addEventListener('load', ()=>setTimeout(apStart,300));
+  }
+  setInterval(load, 12000);  // steady refresh every 12s
+
+} else {
+  // ── STA Mode: HTTP + MQTT cloud ──
+  load();
+  mqttConnect();
+  setInterval(load, 15000);
+}
 </script>
 </body>
 </html>
